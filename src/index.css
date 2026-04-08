@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: smartkids --default, smartkids-dark;
+}
+
+@plugin "daisyui/theme" {
+  name: "smartkids";
+  default: true;
+  --color-primary: #60A5FA;
+  --color-secondary: #FDBA74;
+  --color-accent: #F472B6;
+  --color-success: #4ADE80;
+  --color-warning: #FDE68A;
+  --color-base-100: #FFFFFF;
+  --color-base-200: #F0F9FF;
+  --color-base-300: #E0F2FE;
+  --color-neutral: #1F2937;
+  --color-neutral-content: #FFFFFF;
+}
+
+@plugin "daisyui/theme" {
+  name: "smartkids-dark";
+  --color-primary: #60A5FA;
+  --color-secondary: #FDBA74;
+  --color-accent: #F472B6;
+  --color-success: #4ADE80;
+  --color-warning: #FDE68A;
+  --color-base-100: #0F172A;
+  --color-base-200: #1E293B;
+  --color-base-300: #334155;
+  --color-neutral: #E2E8F0;
+  --color-neutral-content: #0F172A;
+}
+
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Swiper custom dots */
+.swiper-dots .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: #60A5FA;
+  opacity: 0.4;
+  border-radius: 9999px;
+  transition: all 0.3s;
+}
+.swiper-dots .swiper-pagination-bullet-active {
+  opacity: 1;
+  width: 24px;
+  background: #60A5FA;
+}
