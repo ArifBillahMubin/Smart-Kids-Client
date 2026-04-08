@@ -9,7 +9,7 @@ import {
     signOut,
     updateProfile,
 } from 'firebase/auth'
-import { app } from '../firebase/firebase.config'
+import { app } from '../firebase/firebase.init'
 import { AuthContext } from './AuthContext'
 
 const auth = getAuth(app)

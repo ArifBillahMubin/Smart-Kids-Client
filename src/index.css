@@ -54,3 +54,11 @@ body {
   width: 24px;
   background: #60A5FA;
 }
+
+/* Auth form inputs — dark mode text fix */
+input, select, textarea {
+  color: var(--color-neutral);
+}
+input::placeholder, textarea::placeholder {
+  color: color-mix(in srgb, var(--color-neutral) 40%, transparent);
+}
