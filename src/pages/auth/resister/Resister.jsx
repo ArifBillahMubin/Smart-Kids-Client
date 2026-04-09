@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { FcGoogle } from 'react-icons/fc';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { FaUser, FaChild } from 'react-icons/fa';
@@ -89,6 +89,7 @@ const Resister = () => {
 
     const [parentPreview, setParentPreview] = useState(null);
     const [childPreview, setChildPreview] = useState(null);
+
 
     const { register, handleSubmit, formState: { errors } } = useForm();
 

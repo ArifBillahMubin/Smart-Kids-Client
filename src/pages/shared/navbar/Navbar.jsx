@@ -3,6 +3,8 @@ import { NavLink } from 'react-router';
 import { FaSun, FaMoon } from 'react-icons/fa';
 import logo from '../../../assets/SmartKids_logo_final.png';
 import { useApp } from '../../../context/AppContext';
+import useAuth from '../../../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 const navItems = {
     en: [
@@ -23,6 +25,17 @@ const Navbar = () => {
     const { lang, toggleLang, theme, toggleTheme } = useApp();
     const links = navItems[lang];
     const isDark = theme === 'smartkids-dark';
+    const {user,logOut} = useAuth();
+
+    console.log(user);
+
+    const handleLogout = () => {
+        logOut()
+            .then(() => {
+                 toast.success(lang === 'bn' ? 'সাইন আউট সফল হয়েছে' : 'Sign Out Successful');
+            });
+    };
+
 
     const navLinks = links.map(item => (
         <li key={item.to}>
@@ -81,10 +94,47 @@ const Navbar = () => {
                     <FaMoon className="swap-off text-primary text-base" />
                 </label>
 
-                {/* CTA */}
-                <NavLink to="/login" className="btn btn-primary btn-sm rounded-full text-white hidden sm:flex">
-                    {lang === 'bn' ? 'শুরু করুন' : 'Get Started'}
-                </NavLink>
+                {/* User / CTA */}
+                {user ? (
+                    <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="flex items-center gap-2 cursor-pointer">
+                            <img
+                                src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=60A5FA&color=fff`}
+                                alt={user.displayName}
+                                className="w-9 h-9 rounded-full object-cover border-2 border-primary"
+                            />
+                            <span className="hidden sm:block text-sm font-semibold text-neutral max-w-[100px] truncate">
+                                {user.displayName?.split(' ')[0]}
+                            </span>
+                        </div>
+                        <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-2xl shadow-lg border border-base-300 z-50 mt-3 w-52 p-2">
+                            <li className="px-3 py-2 border-b border-base-300 mb-1">
+                                <div className="flex items-center gap-3 pointer-events-none">
+                                    <img
+                                        src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=60A5FA&color=fff`}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                        alt=""
+                                    />
+                                    <div>
+                                        <p className="font-semibold text-neutral text-sm">{user.displayName}</p>
+                                        <p className="text-neutral/50 text-xs truncate">{user.email}</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li><NavLink to="/dashboard" className="text-sm">{lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}</NavLink></li>
+                            <li><NavLink to="/profile" className="text-sm">{lang === 'bn' ? 'প্রোফাইল' : 'Profile'}</NavLink></li>
+                            <li>
+                                <button onClick={handleLogout} className="text-sm text-error w-full text-left">
+                                    {lang === 'bn' ? 'সাইন আউট' : 'Sign Out'}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                ) : (
+                    <NavLink to="/login" className="btn btn-primary btn-sm rounded-full text-white hidden sm:flex">
+                        {lang === 'bn' ? 'সাইন ইন' : 'Sign In'}
+                    </NavLink>
+                )}
             </div>
         </div>
     );

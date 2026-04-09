@@ -49,6 +49,7 @@ const Login = () => {
     const c = t[lang];
     const navigate = useNavigate();
     const location = useLocation();
+    
     const from = location.state || '/';
     const { signIn, signInWithGoogle, loading, setLoading } = useAuth();
     const [showPass, setShowPass] = useState(false);
