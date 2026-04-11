@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lottiefiles/react-lottie-player": "^3.6.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.9.1",
     "axios": "^1.15.0",
+    "canvas-confetti": "^1.9.4",
     "firebase": "^12.11.0",
     "framer-motion": "^12.38.0",
     "leaflet": "^1.9.4",
@@ -21,8 +25,11 @@
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.6.0",
     "react-leaflet": "^5.0.0",
+    "react-parallax-tilt": "^1.7.322",
     "react-responsive-carousel": "^3.2.23",
     "react-router": "^7.14.0",
+    "react-spring": "^10.0.3",
+    "react-type-animation": "^3.2.0",
     "swiper": "^12.1.3",
     "tailwindcss": "^4.2.2"
   },

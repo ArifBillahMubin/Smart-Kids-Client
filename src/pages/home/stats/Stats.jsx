@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useSpring, animated } from 'react-spring';
 import { FaUserGraduate, FaBookOpen, FaChalkboardTeacher, FaStar, FaSmile } from 'react-icons/fa';
+import { Player } from '@lottiefiles/react-lottie-player';
 import { useApp } from '../../../context/AppContext';
 
 const statsData = {
@@ -21,43 +23,42 @@ const statsData = {
 };
 
 const headings = {
-    en: { badge: '🏆 Our Numbers', title: 'Trusted by Thousands of', highlight: 'Families', sub: 'SmartKids is growing every day — here\'s what we\'ve achieved together.' },
+    en: { badge: '🏆 Our Numbers', title: 'Trusted by Thousands of', highlight: 'Families', sub: "SmartKids is growing every day — here's what we've achieved together." },
     bn: { badge: '🏆 আমাদের সংখ্যা', title: 'হাজারো পরিবারের', highlight: 'বিশ্বাস', sub: 'SmartKids প্রতিদিন বাড়ছে — একসাথে আমরা যা অর্জন করেছি।' },
 };
 
-const useCounter = (target, duration = 2000, decimal = false, inView = false) => {
-    const [count, setCount] = useState(0);
-    useEffect(() => {
-        if (!inView) return;
-        let start = 0;
-        const step = target / (duration / 16);
-        const timer = setInterval(() => {
-            start += step;
-            if (start >= target) { setCount(target); clearInterval(timer); }
-            else setCount(decimal ? parseFloat(start.toFixed(1)) : Math.floor(start));
-        }, 16);
-        return () => clearInterval(timer);
-    }, [inView, target, duration, decimal]);
-    return count;
-};
+const SpringCounter = ({ value, decimal, suffix, color, inView }) => {
+    const { number } = useSpring({
+        from: { number: 0 },
+        to: { number: inView ? value : 0 },
+        config: { duration: 2000 },
+    });
 
-const StatCard = ({ stat, inView, index }) => {
-    const count = useCounter(stat.value, 2000, stat.decimal, inView);
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{ scale: 1.06, y: -6 }}
-            className="flex flex-col items-center text-center gap-4 bg-base-100 border border-base-300 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300"
-        >
-            <div className={`${stat.bg} ${stat.color} w-16 h-16 rounded-2xl flex items-center justify-center text-2xl`}>{stat.icon}</div>
-            <div>
-                <p className={`text-4xl font-extrabold ${stat.color}`}>{count}{stat.suffix}</p>
-                <p className="text-neutral/60 text-sm mt-1 font-medium">{stat.label}</p>
-            </div>
-        </motion.div>
+        <animated.span className={`text-4xl font-extrabold ${color}`}>
+            {number.to(n => (decimal ? n.toFixed(1) : Math.floor(n)) + suffix)}
+        </animated.span>
     );
 };
+
+const StatCard = ({ stat, inView, index }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        whileHover={{ scale: 1.06, y: -6 }}
+        className="flex flex-col items-center text-center gap-4 bg-base-100 border border-base-300 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300"
+    >
+        <div className={`${stat.bg} ${stat.color} w-16 h-16 rounded-2xl flex items-center justify-center text-2xl`}>
+            {stat.icon}
+        </div>
+        <div>
+            <SpringCounter value={stat.value} decimal={stat.decimal} suffix={stat.suffix} color={stat.color} inView={inView} />
+            <p className="text-neutral/60 text-sm mt-1 font-medium">{stat.label}</p>
+        </div>
+    </motion.div>
+);
 
 const Stats = () => {
     const { lang } = useApp();
@@ -82,6 +83,12 @@ const Stats = () => {
                 </motion.div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
                     {stats.map((s, i) => <StatCard key={i} stat={s} inView={inView} index={i} />)}
+                </div>
+
+                {/* Lottie celebration at bottom */}
+                <div className="flex justify-center mt-6">
+                    <Player autoplay loop src="https://assets10.lottiefiles.com/packages/lf20_jR229r.json"
+                        style={{ width: 120, height: 120 }} />
                 </div>
             </div>
         </section>

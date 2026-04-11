@@ -51,7 +51,7 @@ const FAQ = () => {
                 <div className="flex flex-col gap-3">
                     {c.items.map((faq, i) => (
                         <motion.div key={`${lang}-${i}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.07 }}>
-                            <div className="collapse collapse-arrow bg-base-200 rounded-2xl border border-base-300 hover:border-primary/30 transition-colors duration-200">
+                            <div className="collapse collapse-arrow bg-base-200 rounded-2xl border-2 border-base-300 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200">
                                 <input type="radio" name="faq-accordion" defaultChecked={i === 0} />
                                 <div className="collapse-title font-semibold text-neutral text-sm md:text-base pr-10">{faq.q}</div>
                                 <div className="collapse-content text-neutral/60 text-sm leading-relaxed"><p className="pt-1">{faq.a}</p></div>

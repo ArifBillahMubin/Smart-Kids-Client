@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Baloo+2:wght@400;600;700;800&display=swap');
 
 @import "tailwindcss";
 
@@ -9,16 +9,20 @@
 @plugin "daisyui/theme" {
   name: "smartkids";
   default: true;
-  --color-primary: #60A5FA;
-  --color-secondary: #FDBA74;
+  --color-primary: #4F9CF9;
+  --color-secondary: #FF9F43;
   --color-accent: #F472B6;
-  --color-success: #4ADE80;
-  --color-warning: #FDE68A;
+  --color-success: #26de81;
+  --color-warning: #FED330;
+  --color-error: #FC5C65;
   --color-base-100: #FFFFFF;
   --color-base-200: #F0F9FF;
-  --color-base-300: #E0F2FE;
-  --color-neutral: #1F2937;
+  --color-base-300: #DBEAFE;
+  --color-neutral: #1E293B;
   --color-neutral-content: #FFFFFF;
+  --rounded-box: 1.5rem;
+  --rounded-btn: 9999px;
+  --rounded-badge: 9999px;
 }
 
 @plugin "daisyui/theme" {
@@ -28,37 +32,108 @@
   --color-accent: #F472B6;
   --color-success: #4ADE80;
   --color-warning: #FDE68A;
+  --color-error: #FC5C65;
   --color-base-100: #0F172A;
   --color-base-200: #1E293B;
   --color-base-300: #334155;
   --color-neutral: #E2E8F0;
   --color-neutral-content: #0F172A;
+  --rounded-box: 1.5rem;
+  --rounded-btn: 9999px;
+  --rounded-badge: 9999px;
 }
 
-
+/* ── Typography ── */
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
-/* Swiper custom dots */
-.swiper-dots .swiper-pagination-bullet {
-  width: 8px;
-  height: 8px;
-  background: #60A5FA;
-  opacity: 0.4;
+h1, h2, h3, h4 {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #60A5FA; border-radius: 99px; }
+
+/* ── Swiper dots ── */
+.swiper-dots .swiper-pagination-bullet,
+.banner-dots .swiper-pagination-bullet {
+  width: 8px; height: 8px;
+  background: #4F9CF9;
+  opacity: 0.35;
   border-radius: 9999px;
   transition: all 0.3s;
 }
-.swiper-dots .swiper-pagination-bullet-active {
-  opacity: 1;
-  width: 24px;
-  background: #60A5FA;
+.swiper-dots .swiper-pagination-bullet-active,
+.banner-dots .swiper-pagination-bullet-active {
+  opacity: 1; width: 28px;
+  background: #4F9CF9;
 }
 
-/* Auth form inputs — dark mode text fix */
+/* ── Story dots ── */
+.story-dots .swiper-pagination-bullet {
+  width: 8px; height: 8px;
+  background: #FF9F43;
+  opacity: 0.35;
+  border-radius: 9999px;
+  transition: all 0.3s;
+}
+.story-dots .swiper-pagination-bullet-active {
+  opacity: 1; width: 28px;
+  background: #FF9F43;
+}
+
+/* ── Floating blob shapes (decorative) ── */
+.blob {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  animation: blobMove 8s ease-in-out infinite;
+}
+@keyframes blobMove {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50%       { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+
+/* ── Wiggle animation for icons ── */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50%       { transform: rotate(6deg); }
+}
+.wiggle { animation: wiggle 1.5s ease-in-out infinite; }
+
+/* ── Bounce slow ── */
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+.bounce-slow { animation: bounceSlow 3s ease-in-out infinite; }
+
+/* ── Card hover glow ── */
+.card-glow:hover {
+  box-shadow: 0 8px 32px 0 rgba(79, 156, 249, 0.18);
+}
+
+/* ── Auth form inputs ── */
 input, select, textarea {
   color: var(--color-neutral);
 }
 input::placeholder, textarea::placeholder {
   color: color-mix(in srgb, var(--color-neutral) 40%, transparent);
+}
+
+/* ── Section wave divider ── */
+.wave-top {
+  position: relative;
+}
+.wave-top::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: 0; right: 0;
+  height: 40px;
+  background: var(--color-base-100);
+  clip-path: ellipse(55% 100% at 50% 0%);
 }
