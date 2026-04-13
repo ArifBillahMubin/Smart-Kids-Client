@@ -53,3 +53,29 @@ export const deleteCourse = async (id) => {
     const { data } = await axios.delete(`${API}course/${id}`);
     return data;
 };
+
+// ── Enrollment & Payment APIs ──
+
+// Free course — direct enrollment
+export const enrollFree = async (enrollmentData) => {
+    const { data } = await axios.post(`${API}enrollments`, enrollmentData);
+    return data;
+};
+
+// Paid course — create Stripe checkout session
+export const createCheckoutSession = async (info) => {
+    const { data } = await axios.post(`${API}create-checkout-session`, info);
+    return data;
+};
+
+// After Stripe redirect — verify payment & save enrollment
+export const verifyPayment = async (sessionId) => {
+    const { data } = await axios.post(`${API}payment-success`, { sessionId });
+    return data;
+};
+
+// Get all enrollments for a user
+export const getEnrollments = async (email) => {
+    const { data } = await axios.get(`${API}enrollments/${email}`);
+    return data;
+};

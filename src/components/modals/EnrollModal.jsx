@@ -1,63 +1,99 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Dialog, Transition, TransitionChild, DialogPanel, DialogTitle } from '@headlessui/react';
 import { motion } from 'framer-motion';
-import { FaBook, FaClock, FaGraduationCap, FaUsers, FaStar, FaCheckCircle, FaTimes } from 'react-icons/fa';
+import { FaBook, FaClock, FaGraduationCap, FaUsers, FaStar, FaCheckCircle, FaTimes, FaLock } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-hot-toast';
 import { useApp } from '../../context/AppContext';
 import useAuth from '../../hooks/useAuth';
+import { enrollFree, createCheckoutSession } from '../../utils';
 import confetti from 'canvas-confetti';
 
 const t = {
     en: {
         title: 'Enroll in Course',
-        free: 'Free', paid: 'Paid',
-        includes: "This course includes:",
+        free: 'Free', freeNote: 'Completely Free',
+        includes: 'This course includes:',
         lessons: 'lessons', duration: 'duration', level: 'level', students: 'students enrolled',
-        loginRequired: 'Please sign in to enroll',
+        loginRequired: 'Please sign in to enroll in this course.',
         loginBtn: 'Sign In to Enroll',
-        enrollBtn: 'Enroll Now — Free',
-        enrollPaidBtn: 'Enroll Now',
+        enrollFreeBtn: 'Enroll Now — Free',
+        enrollPaidBtn: 'Pay & Enroll',
         enrolledBtn: '✅ Enrolled!',
         cancel: 'Cancel',
         note: 'You can start learning immediately after enrolling.',
+        paidNote: 'Secure payment via Stripe.',
     },
     bn: {
         title: 'কোর্সে ভর্তি হন',
-        free: 'বিনামূল্যে', paid: 'পেইড',
+        free: 'বিনামূল্যে', freeNote: 'সম্পূর্ণ বিনামূল্যে',
         includes: 'এই কোর্সে রয়েছে:',
         lessons: 'লেসন', duration: 'সময়কাল', level: 'স্তর', students: 'শিক্ষার্থী ভর্তি',
-        loginRequired: 'ভর্তি হতে সাইন ইন করুন',
+        loginRequired: 'এই কোর্সে ভর্তি হতে সাইন ইন করুন।',
         loginBtn: 'সাইন ইন করুন',
-        enrollBtn: 'এখনই ভর্তি হন — বিনামূল্যে',
-        enrollPaidBtn: 'এখনই ভর্তি হন',
+        enrollFreeBtn: 'এখনই ভর্তি হন — বিনামূল্যে',
+        enrollPaidBtn: 'পেমেন্ট করুন ও ভর্তি হন',
         enrolledBtn: '✅ ভর্তি হয়েছেন!',
         cancel: 'বাতিল',
         note: 'ভর্তির পরপরই শেখা শুরু করতে পারবেন।',
+        paidNote: 'Stripe এর মাধ্যমে নিরাপদ পেমেন্ট।',
     },
 };
 
-const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnroll, enrolling }) => {
+const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnrolled }) => {
     const { lang } = useApp();
     const { user } = useAuth();
     const navigate = useNavigate();
     const c = t[lang];
+    const [loading, setLoading] = useState(false);
 
     if (!course) return null;
 
-    const handleEnroll = () => {
-        confetti({
-            particleCount: 120, spread: 80, origin: { y: 0.6 },
-            colors: ['#4F9CF9', '#FF9F43', '#F472B6', '#4ADE80'],
-        });
-        onEnroll();
+    const isFree = !course.priceAmount || course.priceAmount === 0;
+
+    const handleEnroll = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            if (isFree) {
+                // Free enrollment — save directly to DB
+                await enrollFree({
+                    courseId:    course._id,
+                    courseTitle: course.title,
+                    userEmail:   user.email,
+                    userName:    user.displayName,
+                    payment:     false,
+                    enrolledAt:  new Date(),
+                });
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#4F9CF9', '#FF9F43', '#F472B6', '#4ADE80'] });
+                toast.success(lang === 'bn' ? 'সফলভাবে ভর্তি হয়েছেন!' : 'Enrolled successfully!');
+                onEnrolled?.();
+                onClose();
+            } else {
+                // Paid — redirect to Stripe
+                const { url } = await createCheckoutSession({
+                    courseId:    course._id,
+                    courseTitle: course.title,
+                    description: course.description || '',
+                    priceAmount: course.priceAmount,
+                    userEmail:   user.email,
+                    userName:    user.displayName,
+                });
+                window.location.href = url;
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Something went wrong');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const includes = [
-        { icon: <FaBook className="text-primary" />, label: `${course.lessons} ${c.lessons}` },
-        { icon: <FaClock className="text-secondary" />, label: lang === 'bn' ? (course.durationBn || course.duration) : course.duration },
+        { icon: <FaBook className="text-primary" />,       label: `${course.lessons || 0} ${c.lessons}` },
+        { icon: <FaClock className="text-secondary" />,    label: lang === 'bn' ? (course.durationBn || course.duration) : course.duration },
         { icon: <FaGraduationCap className="text-accent" />, label: lang === 'bn' ? (course.levelBn || course.level) : course.level },
-        { icon: <FaUsers className="text-success" />, label: `${(course.enrolled || 0).toLocaleString()} ${c.students}` },
+        { icon: <FaUsers className="text-success" />,      label: `${(course.enrolled || 0).toLocaleString()} ${c.students}` },
     ];
 
     return (
@@ -104,16 +140,22 @@ const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnroll, enrolling })
                                 <div className="p-6 flex flex-col gap-5">
                                     {/* Price */}
                                     <div className="flex items-center justify-between">
-                                        <span className="text-neutral/60 text-sm">{c.title}</span>
-                                        {course.priceAmount === 0
-                                            ? <span className="text-2xl font-bold text-success">{c.free}</span>
-                                            : <div className="text-right">
-                                                <span className="text-2xl font-bold text-primary">৳{course.priceAmount}</span>
+                                        <span className="text-neutral/60 text-sm font-medium">{c.title}</span>
+                                        {isFree ? (
+                                            <div className="text-right">
+                                                <p className="text-2xl font-bold text-success">{c.free}</p>
+                                                <p className="text-xs text-neutral/40">{c.freeNote}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-right">
+                                                <p className="text-2xl font-bold text-primary">৳{course.priceAmount}</p>
                                                 <p className="text-xs text-neutral/40 line-through">৳{Math.round(course.priceAmount * 1.5)}</p>
-                                            </div>}
+                                                <span className="text-xs font-bold bg-error/15 text-error px-2 py-0.5 rounded-full">33% OFF</span>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* What's included */}
+                                    {/* Includes */}
                                     <div>
                                         <p className="text-sm font-semibold text-neutral mb-3">{c.includes}</p>
                                         <div className="grid grid-cols-2 gap-2">
@@ -140,7 +182,11 @@ const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnroll, enrolling })
                                         </div>
                                     )}
 
-                                    <p className="text-xs text-neutral/40 text-center">{c.note}</p>
+                                    {/* Note */}
+                                    <p className="text-xs text-neutral/40 text-center flex items-center justify-center gap-1">
+                                        {!isFree && <FaLock className="text-xs" />}
+                                        {isFree ? c.note : c.paidNote}
+                                    </p>
 
                                     {/* Action buttons */}
                                     {!user ? (
@@ -162,10 +208,10 @@ const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnroll, enrolling })
                                                 whileHover={{ scale: enrolled ? 1 : 1.02 }}
                                                 whileTap={{ scale: 0.97 }}
                                                 onClick={enrolled ? undefined : handleEnroll}
-                                                disabled={enrolling}
-                                                className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${enrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md'}`}>
-                                                {enrolling && <TbFidgetSpinner className="animate-spin" />}
-                                                {enrolled ? c.enrolledBtn : course.priceAmount === 0 ? c.enrollBtn : c.enrollPaidBtn}
+                                                disabled={loading || enrolled}
+                                                className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${enrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md'} disabled:opacity-70`}>
+                                                {loading && <TbFidgetSpinner className="animate-spin" />}
+                                                {enrolled ? c.enrolledBtn : isFree ? c.enrollFreeBtn : c.enrollPaidBtn}
                                             </motion.button>
                                         </div>
                                     )}

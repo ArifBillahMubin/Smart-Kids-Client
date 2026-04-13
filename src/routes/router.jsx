@@ -7,6 +7,7 @@ import Resister from "../pages/auth/resister/Resister";
 import Login from "../pages/auth/login/Login";
 import Courses from "../pages/courses/Courses";
 import CourseDetails from "../pages/courses/CourseDetails";
+import PaymentSuccess from "../pages/payment/PaymentSuccess";
 
 // Guardian pages
 import GuardianOverview from "../pages/dashboard/guardian/overview/Overview";
@@ -30,6 +31,11 @@ export const router = createBrowserRouter([
             { path: 'courses', Component: Courses },
             { path: 'courses/:id', Component: CourseDetails },
         ]
+    },
+    // Standalone — no navbar/footer, handles Stripe redirect
+    {
+        path: '/payment-success',
+        Component: PaymentSuccess,
     },
     {
         path: '/',

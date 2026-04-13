@@ -203,7 +203,7 @@ const CourseDetails = () => {
             onClose={() => setEnrollModalOpen(false)}
             course={course}
             enrolled={enrolled}
-            onEnroll={handleEnroll}
+            onEnrolled={() => setEnrolled(true)}
             enrolling={false}
         />
         </>
