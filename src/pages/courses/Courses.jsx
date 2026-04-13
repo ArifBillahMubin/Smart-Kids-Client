@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router';
 import { FaStar, FaUsers, FaBook, FaClock, FaSearch, FaArrowRight } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
+import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
 import { getCourses } from '../../utils';
 
@@ -22,18 +23,14 @@ const card = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, trans
 
 const Courses = () => {
     const { lang } = useApp();
-    const [courses, setCourses] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
 
-    // Fetch courses from API
-    useEffect(() => {
-        getCourses()
-            .then(data => setCourses(data))
-            .catch(() => setCourses([]))
-            .finally(() => setLoading(false));
-    }, []);
+    // useQuery — automatic caching & refetch
+    const { data: courses = [], isLoading } = useQuery({
+        queryKey: ['courses'],
+        queryFn: getCourses,
+    });
 
     const subject = filterMap[activeFilter];
     const filtered = courses.filter(c => {
@@ -83,14 +80,14 @@ const Courses = () => {
                 </div>
 
                 {/* Loading */}
-                {loading && (
+                {isLoading && (
                     <div className="flex justify-center py-24">
                         <TbFidgetSpinner className="animate-spin text-primary text-4xl" />
                     </div>
                 )}
 
                 {/* Course grid */}
-                {!loading && (
+                {!isLoading && (
                     <motion.div variants={container} initial="hidden" animate="visible"
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filtered.map(course => (
@@ -148,7 +145,7 @@ const Courses = () => {
                     </motion.div>
                 )}
 
-                {!loading && filtered.length === 0 && (
+                {!isLoading && filtered.length === 0 && (
                     <div className="text-center py-20 text-neutral/40">
                         <p className="text-5xl mb-4">🔍</p>
                         <p className="font-semibold">{lang === 'bn' ? 'কোনো কোর্স পাওয়া যায়নি' : 'No courses found'}</p>

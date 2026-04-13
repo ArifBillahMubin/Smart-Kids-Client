@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaBook, FaUsers, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
@@ -26,13 +27,13 @@ const EMPTY = {
     color: COLORS[0].value, price: 'Free', priceBn: 'বিনামূল্যে', priceAmount: 0,
     instructor: '', instructorBn: '', instructorRole: '', instructorRoleBn: '',
     description: '', descriptionBn: '',
-    whatYouLearn: '', whatYouLearnBn: '',       // newline-separated in form
-    curriculum: '',                              // "Week 1|Topic|TopicBn|6" per line
+    whatYouLearn: '', whatYouLearnBn: '',
+    curriculum: '',
     requirements: '', requirementsBn: '',
     tags: '', status: 'draft',
 };
 
-//  Small reusable input 
+// Small reusable input
 const F = ({ label, name, reg, rules, err, type = 'text', ph = '' }) => (
     <div className="flex flex-col gap-1">
         <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">{label}</label>
@@ -43,52 +44,83 @@ const F = ({ label, name, reg, rules, err, type = 'text', ph = '' }) => (
     </div>
 );
 
+// Parse textarea form data → clean object
+const parse = (data) => ({
+    ...data,
+    lessons:     Number(data.lessons),
+    quizzes:     Number(data.quizzes),
+    priceAmount: Number(data.priceAmount),
+    badge:       'bg-primary/10 text-primary',
+    whatYouLearn:   data.whatYouLearn.split('\n').map(s => s.trim()).filter(Boolean),
+    whatYouLearnBn: data.whatYouLearnBn.split('\n').map(s => s.trim()).filter(Boolean),
+    requirements:   data.requirements.split('\n').map(s => s.trim()).filter(Boolean),
+    requirementsBn: data.requirementsBn.split('\n').map(s => s.trim()).filter(Boolean),
+    tags:           data.tags.split(',').map(s => s.trim()).filter(Boolean),
+    curriculum:     data.curriculum.split('\n').map(line => {
+        const [week, weekBn, topic, topicBn, lessons] = line.split('|');
+        return { week, weekBn, topic, topicBn, lessons: Number(lessons) };
+    }).filter(c => c.week),
+});
+
 const ManageCourses = () => {
-    const [courses, setCourses]     = useState([]);
-    const [loading, setLoading]     = useState(true);
-    const [saving, setSaving]       = useState(false);
+    const queryClient = useQueryClient();
     const [search, setSearch]       = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-    // ─ Fetch all courses on mount ──
-    useEffect(() => {
-        fetchCourses();
-    }, []);
+    // ── GET all courses ──
+    const { data: courses = [], isLoading } = useQuery({
+        queryKey: ['courses'],
+        queryFn: getCourses,
+    });
 
-    const fetchCourses = async () => {
-        try {
-            setLoading(true);
-            const data = await getCourses();
-            setCourses(data);
-        } catch {
-            toast.error('Failed to load courses');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // ── ADD course ──
+    const addMutation = useMutation({
+        mutationFn: addCourse,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] }); // refetch
+            toast.success('Course added!');
+            setModalOpen(false);
+        },
+        onError: (err) => toast.error(err?.response?.data?.message || 'Add failed'),
+    });
 
-    // ─ Open Add modal ─
-    const openAdd = () => {
-        reset(EMPTY);
-        setEditingId(null);
-        setModalOpen(true);
-    };
+    // ── UPDATE course ──
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }) => updateCourse(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] }); // refetch
+            toast.success('Course updated!');
+            setModalOpen(false);
+        },
+        onError: (err) => toast.error(err?.response?.data?.message || 'Update failed'),
+    });
 
-    // ─ Open Edit modal — pre-fill form ─
+    // ── DELETE course ──
+    const deleteMutation = useMutation({
+        mutationFn: deleteCourse,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] }); // refetch
+            Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false });
+        },
+        onError: (err) => toast.error(err?.response?.data?.message || 'Delete failed'),
+    });
+
+    // Open Add modal
+    const openAdd = () => { reset(EMPTY); setEditingId(null); setModalOpen(true); };
+
+    // Open Edit modal — pre-fill form
     const openEdit = (course) => {
         reset({
             ...course,
-            // Convert arrays → newline strings for textarea
             whatYouLearn:   (course.whatYouLearn   || []).join('\n'),
             whatYouLearnBn: (course.whatYouLearnBn || []).join('\n'),
             requirements:   (course.requirements   || []).join('\n'),
             requirementsBn: (course.requirementsBn || []).join('\n'),
             tags:           (course.tags           || []).join(', '),
-            // curriculum: "week|topic|topicBn|lessons" per line
-            curriculum: (course.curriculum || [])
+            curriculum:     (course.curriculum     || [])
                 .map(c => `${c.week}|${c.weekBn}|${c.topic}|${c.topicBn}|${c.lessons}`)
                 .join('\n'),
         });
@@ -96,50 +128,17 @@ const ManageCourses = () => {
         setModalOpen(true);
     };
 
-    // ── Parse form data → clean object ──
-    const parse = (data) => ({
-        ...data,
-        lessons:     Number(data.lessons),
-        quizzes:     Number(data.quizzes),
-        priceAmount: Number(data.priceAmount),
-        badge:       'bg-primary/10 text-primary',
-        whatYouLearn:   data.whatYouLearn.split('\n').map(s => s.trim()).filter(Boolean),
-        whatYouLearnBn: data.whatYouLearnBn.split('\n').map(s => s.trim()).filter(Boolean),
-        requirements:   data.requirements.split('\n').map(s => s.trim()).filter(Boolean),
-        requirementsBn: data.requirementsBn.split('\n').map(s => s.trim()).filter(Boolean),
-        tags:           data.tags.split(',').map(s => s.trim()).filter(Boolean),
-        curriculum:     data.curriculum.split('\n').map(line => {
-            const [week, weekBn, topic, topicBn, lessons] = line.split('|');
-            return { week, weekBn, topic, topicBn, lessons: Number(lessons) };
-        }).filter(c => c.week),
-    });
-
-    // ─ Submit: Add or Update ─
-    const onSubmit = async (data) => {
-        setSaving(true);
-        try {
-            const payload = parse(data);
-
-            if (editingId) {
-                // PUT /course/:id
-                await updateCourse(editingId, payload);
-                setCourses(prev => prev.map(c => c._id === editingId ? { ...payload, _id: editingId } : c));
-                toast.success('Course updated!');
-            } else {
-                // POST /courses
-                const result = await addCourse(payload);
-                setCourses(prev => [...prev, { ...payload, _id: result?.insertedId }]);
-                toast.success('Course added!');
-            }
-            setModalOpen(false);
-        } catch (err) {
-            toast.error(err?.response?.data?.message || 'Something went wrong');
-        } finally {
-            setSaving(false);
+    // Submit: Add or Update
+    const onSubmit = (data) => {
+        const payload = parse(data);
+        if (editingId) {
+            updateMutation.mutate({ id: editingId, data: payload });
+        } else {
+            addMutation.mutate(payload);
         }
     };
 
-    // ─ Delete — SweetAlert2 confirm ─
+    // Delete with SweetAlert confirm
     const handleDelete = async (id) => {
         const result = await Swal.fire({
             title: 'Delete Course?',
@@ -151,17 +150,10 @@ const ManageCourses = () => {
             confirmButtonText: 'Yes, delete!',
             cancelButtonText: 'Cancel',
         });
-
-        if (!result.isConfirmed) return;
-
-        try {
-            await deleteCourse(id);
-            setCourses(prev => prev.filter(c => c._id !== id));
-            Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false });
-        } catch (err) {
-            toast.error(err?.response?.data?.message || 'Delete failed');
-        }
+        if (result.isConfirmed) deleteMutation.mutate(id);
     };
+
+    const isSaving = addMutation.isPending || updateMutation.isPending;
 
     const filtered = courses.filter(c =>
         c.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -189,21 +181,20 @@ const ManageCourses = () => {
             </div>
 
             {/* Loading */}
-            {loading && (
+            {isLoading && (
                 <div className="flex justify-center py-20">
                     <FaSpinner className="animate-spin text-primary text-3xl" />
                 </div>
             )}
 
             {/* Course grid */}
-            {!loading && (
+            {!isLoading && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {filtered.map((c, i) => (
                         <motion.div key={c._id || i}
                             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.05 }}
                             className="bg-base-100 rounded-3xl border border-base-300 overflow-hidden hover:shadow-md transition-shadow">
-                            {/* Card header */}
                             <div className={`bg-gradient-to-br ${c.color || 'from-primary to-primary/60'} p-5 flex items-center justify-between`}>
                                 <span className="text-4xl">{c.emoji}</span>
                                 <div className="text-right">
@@ -215,7 +206,6 @@ const ManageCourses = () => {
                                     </p>
                                 </div>
                             </div>
-                            {/* Card body */}
                             <div className="p-5">
                                 <h3 className="font-bold text-neutral mb-1 truncate">{c.title}</h3>
                                 <p className="text-xs text-neutral/50 mb-2">{c.subject} · {c.class}</p>
@@ -229,14 +219,15 @@ const ManageCourses = () => {
                                         <FaEdit /> Edit
                                     </button>
                                     <button onClick={() => handleDelete(c._id)}
-                                        className="px-3 py-2 rounded-xl bg-error/10 text-error text-xs font-bold hover:bg-error hover:text-white transition-all">
-                                        <FaTrash />
+                                        disabled={deleteMutation.isPending}
+                                        className="px-3 py-2 rounded-xl bg-error/10 text-error text-xs font-bold hover:bg-error hover:text-white transition-all disabled:opacity-50">
+                                        {deleteMutation.isPending ? <FaSpinner className="animate-spin" /> : <FaTrash />}
                                     </button>
                                 </div>
                             </div>
                         </motion.div>
                     ))}
-                    {filtered.length === 0 && !loading && (
+                    {filtered.length === 0 && (
                         <p className="col-span-3 text-center text-neutral/40 py-16">No courses found.</p>
                     )}
                 </div>
@@ -250,7 +241,6 @@ const ManageCourses = () => {
                         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
                             className="bg-base-100 rounded-3xl w-full max-w-2xl my-8 border border-base-300 shadow-2xl">
 
-                            {/* Modal header */}
                             <div className="flex items-center justify-between p-6 border-b border-base-300">
                                 <h3 className="text-xl font-bold text-neutral">
                                     {editingId ? 'Edit Course' : 'Add New Course'}
@@ -264,7 +254,7 @@ const ManageCourses = () => {
                             <form onSubmit={handleSubmit(onSubmit)}
                                 className="p-6 flex flex-col gap-5 overflow-y-auto max-h-[75vh]">
 
-                                {/* ── Row 1: Emoji, Status, Color ── */}
+                                {/* Emoji, Status, Color */}
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="flex flex-col gap-1">
                                         <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Emoji</label>
@@ -290,38 +280,26 @@ const ManageCourses = () => {
                                     </div>
                                 </div>
 
-                                {/* ── Title ── */}
+                                {/* Title */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <F label="Title (EN)" name="title" reg={register} rules={{ required: 'Required' }} err={errors.title} ph="Mathematics Class 3" />
                                     <F label="Title (BN)" name="titleBn" reg={register} ph="গণিত ক্লাস ৩" />
                                 </div>
 
-                                {/* ── Subject, Class, Level ── */}
+                                {/* Subject, Class, Level */}
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Subject</label>
-                                        <select className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary"
-                                            {...register('subject', { required: 'Required' })}>
-                                            {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Class</label>
-                                        <select className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary"
-                                            {...register('class')}>
-                                            {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Level</label>
-                                        <select className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary"
-                                            {...register('level')}>
-                                            {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                                        </select>
-                                    </div>
+                                    {[['subject', 'Subject', SUBJECTS], ['class', 'Class', CLASSES], ['level', 'Level', LEVELS]].map(([name, label, opts]) => (
+                                        <div key={name} className="flex flex-col gap-1">
+                                            <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">{label}</label>
+                                            <select className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary"
+                                                {...register(name, { required: 'Required' })}>
+                                                {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                                            </select>
+                                        </div>
+                                    ))}
                                 </div>
 
-                                {/* ── Duration, Lessons, Quizzes ── */}
+                                {/* Duration, Lessons, Quizzes */}
                                 <div className="grid grid-cols-4 gap-4">
                                     <F label="Duration (EN)" name="duration" reg={register} rules={{ required: 'Required' }} err={errors.duration} ph="8 Weeks" />
                                     <F label="Duration (BN)" name="durationBn" reg={register} ph="৮ সপ্তাহ" />
@@ -329,7 +307,7 @@ const ManageCourses = () => {
                                     <F label="Quizzes" name="quizzes" reg={register} type="number" ph="12" />
                                 </div>
 
-                                {/* ── Price ── */}
+                                {/* Price */}
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="flex flex-col gap-1">
                                         <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Price Type</label>
@@ -343,7 +321,7 @@ const ManageCourses = () => {
                                     <F label="Price Label (BN)" name="priceBn" reg={register} ph="বিনামূল্যে" />
                                 </div>
 
-                                {/* ── Instructor ── */}
+                                {/* Instructor */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <F label="Instructor (EN)" name="instructor" reg={register} rules={{ required: 'Required' }} err={errors.instructor} ph="Md. Rafiqul Islam" />
                                     <F label="Instructor (BN)" name="instructorBn" reg={register} ph="মো. রফিকুল ইসলাম" />
@@ -351,44 +329,36 @@ const ManageCourses = () => {
                                     <F label="Role (BN)" name="instructorRoleBn" reg={register} ph="গণিত শিক্ষক, ১০ বছরের অভিজ্ঞতা" />
                                 </div>
 
-                                {/* ── Description ── */}
+                                {/* Description */}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Description (EN)</label>
-                                        <textarea rows={3} placeholder="Course description..."
-                                            className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
-                                            {...register('description', { required: 'Required' })} />
-                                        {errors.description && <p className="text-error text-xs">{errors.description.message}</p>}
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Description (BN)</label>
-                                        <textarea rows={3} placeholder="বাংলায় বিবরণ..."
-                                            className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
-                                            {...register('descriptionBn')} />
-                                    </div>
+                                    {[['description', 'Description (EN)', 'Course description...', true], ['descriptionBn', 'Description (BN)', 'বাংলায় বিবরণ...', false]].map(([name, label, ph, req]) => (
+                                        <div key={name} className="flex flex-col gap-1">
+                                            <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">{label}</label>
+                                            <textarea rows={3} placeholder={ph}
+                                                className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
+                                                {...register(name, req ? { required: 'Required' } : {})} />
+                                            {errors[name] && <p className="text-error text-xs">{errors[name].message}</p>}
+                                        </div>
+                                    ))}
                                 </div>
 
-                                {/* ── What You'll Learn — one item per line ── */}
+                                {/* What You'll Learn */}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">What You'll Learn (EN) — one per line</label>
-                                        <textarea rows={4} placeholder={"Learn fractions\nLearn geometry\n..."}
-                                            className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
-                                            {...register('whatYouLearn', { required: 'Required' })} />
-                                        {errors.whatYouLearn && <p className="text-error text-xs">{errors.whatYouLearn.message}</p>}
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">What You'll Learn (BN) — one per line</label>
-                                        <textarea rows={4} placeholder={"ভগ্নাংশ শিখুন\nজ্যামিতি শিখুন\n..."}
-                                            className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
-                                            {...register('whatYouLearnBn')} />
-                                    </div>
+                                    {[['whatYouLearn', "What You'll Learn (EN)", "Learn fractions\nLearn geometry", true], ['whatYouLearnBn', "What You'll Learn (BN)", "ভগ্নাংশ শিখুন\nজ্যামিতি শিখুন", false]].map(([name, label, ph, req]) => (
+                                        <div key={name} className="flex flex-col gap-1">
+                                            <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">{label} — one per line</label>
+                                            <textarea rows={4} placeholder={ph}
+                                                className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
+                                                {...register(name, req ? { required: 'Required' } : {})} />
+                                            {errors[name] && <p className="text-error text-xs">{errors[name].message}</p>}
+                                        </div>
+                                    ))}
                                 </div>
 
-                                {/* ── Curriculum — format: week|weekBn|topic|topicBn|lessons ── */}
+                                {/* Curriculum */}
                                 <div className="flex flex-col gap-1">
                                     <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">
-                                        Curriculum — format: <code className="bg-base-300 px-1 rounded">Week 1-2|সপ্তাহ ১-২|Topic|বিষয়|6</code> (one per line)
+                                        Curriculum — <code className="bg-base-300 px-1 rounded text-xs">Week 1-2|সপ্তাহ ১-২|Topic|বিষয়|6</code> one per line
                                     </label>
                                     <textarea rows={4} placeholder={"Week 1-2|সপ্তাহ ১-২|Numbers|সংখ্যা|6\nWeek 3-4|সপ্তাহ ৩-৪|Fractions|ভগ্নাংশ|6"}
                                         className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none font-mono"
@@ -396,35 +366,31 @@ const ManageCourses = () => {
                                     {errors.curriculum && <p className="text-error text-xs">{errors.curriculum.message}</p>}
                                 </div>
 
-                                {/* ── Requirements — one per line ── */}
+                                {/* Requirements */}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Requirements (EN) — one per line</label>
-                                        <textarea rows={3} placeholder={"Basic counting\nClass 2 recommended"}
-                                            className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
-                                            {...register('requirements', { required: 'Required' })} />
-                                        {errors.requirements && <p className="text-error text-xs">{errors.requirements.message}</p>}
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">Requirements (BN) — one per line</label>
-                                        <textarea rows={3} placeholder={"মৌলিক গণনা\nক্লাস ২ প্রস্তাবিত"}
-                                            className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
-                                            {...register('requirementsBn')} />
-                                    </div>
+                                    {[['requirements', 'Requirements (EN)', "Basic counting\nClass 2 recommended", true], ['requirementsBn', 'Requirements (BN)', "মৌলিক গণনা\nক্লাস ২ প্রস্তাবিত", false]].map(([name, label, ph, req]) => (
+                                        <div key={name} className="flex flex-col gap-1">
+                                            <label className="text-xs font-bold text-neutral/60 uppercase tracking-wide">{label} — one per line</label>
+                                            <textarea rows={3} placeholder={ph}
+                                                className="px-3 py-2.5 rounded-xl border-2 border-base-300 bg-base-100 text-neutral text-sm outline-none focus:border-primary resize-none"
+                                                {...register(name, req ? { required: 'Required' } : {})} />
+                                            {errors[name] && <p className="text-error text-xs">{errors[name].message}</p>}
+                                        </div>
+                                    ))}
                                 </div>
 
-                                {/* ── Tags ── */}
+                                {/* Tags */}
                                 <F label="Tags (comma separated)" name="tags" reg={register} ph="Math, Class 3, Numbers" />
 
-                                {/* ── Submit ── */}
+                                {/* Submit */}
                                 <div className="flex gap-3 pt-2 border-t border-base-300">
                                     <button type="button" onClick={() => setModalOpen(false)}
                                         className="flex-1 py-3 rounded-2xl border-2 border-base-300 text-neutral font-bold hover:bg-base-200 transition-all">
                                         Cancel
                                     </button>
-                                    <button type="submit" disabled={saving}
-                                        className="flex-1 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
-                                        {saving && <FaSpinner className="animate-spin" />}
+                                    <button type="submit" disabled={isSaving}
+                                        className="flex-1 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+                                        {isSaving && <FaSpinner className="animate-spin" />}
                                         {editingId ? 'Update Course' : 'Add Course'}
                                     </button>
                                 </div>

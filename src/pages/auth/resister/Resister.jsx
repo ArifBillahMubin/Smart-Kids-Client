@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 import { useApp } from '../../../context/AppContext';
 import useAuth from '../../../hooks/useAuth';
 import { imageUpload, saveUser, getUserByEmail } from '../../../utils';
-import GoogleInfoModal from '../../../components/GoogleInfoModal';
+import GoogleInfoModal from '../../../components/modals/GoogleInfoModal';
 import authImg from '../../../assets/login_page-removebg-preview.png';
 import logo from '../../../assets/SmartKids_logo_final.png';
 

@@ -2,28 +2,26 @@ import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router';
 import { FaStar, FaUsers, FaBook, FaClock, FaCheckCircle, FaPlay, FaArrowLeft, FaGraduationCap, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
 import { getCourseById } from '../../utils';
-import confetti from 'canvas-confetti';
+import EnrollModal from '../../components/modals/EnrollModal';
 
 const CourseDetails = () => {
     const { id } = useParams();
     const { lang } = useApp();
-    const [course, setCourse] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [openWeek, setOpenWeek] = useState(0);
     const [enrolled, setEnrolled] = useState(false);
+    const [enrollModalOpen, setEnrollModalOpen] = useState(false);
 
-    // Fetch course from API by _id
-    useEffect(() => {
-        getCourseById(id)
-            .then(data => setCourse(data))
-            .catch(() => setCourse(null))
-            .finally(() => setLoading(false));
-    }, [id]);
+    // useQuery — fetch course by id
+    const { data: course, isLoading } = useQuery({
+        queryKey: ['course', id],
+        queryFn: () => getCourseById(id),
+    });
 
-    if (loading) return (
+    if (isLoading) return (
         <div className="min-h-screen flex items-center justify-center">
             <TbFidgetSpinner className="animate-spin text-primary text-4xl" />
         </div>
@@ -39,12 +37,10 @@ const CourseDetails = () => {
         </div>
     );
 
-    const handleEnroll = () => {
-        setEnrolled(true);
-        confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, colors: ['#4F9CF9', '#FF9F43', '#F472B6', '#4ADE80'] });
-    };
+    const handleEnroll = () => setEnrolled(true);
 
     return (
+        <>
         <div className="min-h-screen bg-base-200">
             {/* Hero */}
             <div className={`bg-gradient-to-br ${course.color} relative overflow-hidden`}>
@@ -76,7 +72,7 @@ const CourseDetails = () => {
                         {/* Enroll card — desktop */}
                         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
                             className="hidden lg:block bg-base-100 rounded-3xl p-6 shadow-2xl border border-base-300">
-                            <EnrollCard course={course} lang={lang} enrolled={enrolled} onEnroll={handleEnroll} />
+                            <EnrollButton course={course} lang={lang} enrolled={enrolled} onOpen={() => setEnrollModalOpen(true)} />
                         </motion.div>
                     </div>
                 </div>
@@ -183,7 +179,7 @@ const CourseDetails = () => {
                 {/* Enroll card — mobile/tablet */}
                 <div className="lg:hidden">
                     <div className="bg-base-100 rounded-3xl p-6 border border-base-300 shadow-md">
-                        <EnrollCard course={course} lang={lang} enrolled={enrolled} onEnroll={handleEnroll} />
+                        <EnrollButton course={course} lang={lang} enrolled={enrolled} onOpen={() => setEnrollModalOpen(true)} />
                     </div>
                 </div>
 
@@ -200,10 +196,22 @@ const CourseDetails = () => {
                 </div>
             </div>
         </div>
+
+        {/* Enroll Modal */}
+        <EnrollModal
+            isOpen={enrollModalOpen}
+            onClose={() => setEnrollModalOpen(false)}
+            course={course}
+            enrolled={enrolled}
+            onEnroll={handleEnroll}
+            enrolling={false}
+        />
+        </>
     );
 };
 
-const EnrollCard = ({ course, lang, enrolled, onEnroll }) => (
+// Simple card with price info + open modal button
+const EnrollButton = ({ course, lang, enrolled, onOpen }) => (
     <div className="flex flex-col gap-4">
         <div className="text-center">
             {course.priceAmount === 0 ? (
@@ -220,9 +228,9 @@ const EnrollCard = ({ course, lang, enrolled, onEnroll }) => (
             )}
         </div>
         <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={onEnroll}
-            className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all ${enrolled ? 'bg-success text-white' : 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg'}`}>
+            whileHover={{ scale: enrolled ? 1 : 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={enrolled ? undefined : onOpen}
+            className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all ${enrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg'}`}>
             {enrolled
                 ? (lang === 'bn' ? '✅ ভর্তি হয়েছেন!' : '✅ Enrolled!')
                 : (lang === 'bn' ? 'এখনই ভর্তি হন' : 'Enroll Now')}
