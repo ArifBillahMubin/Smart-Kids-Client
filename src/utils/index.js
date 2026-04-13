@@ -13,31 +13,42 @@ export const imageUpload = async (imageData) => {
     return data?.data?.display_url;
 };
 
-// Get all courses
+// ── User APIs ──
+
+// Save user to DB (called on register/google login)
+export const saveUser = async (userData) => {
+    const { data } = await axios.post(`${API}users`, userData);
+    return data;
+};
+
+// Get user by email (to check role)
+export const getUserByEmail = async (email) => {
+    const { data } = await axios.get(`${API}users/${email}`);
+    return data;
+};
+
+// ── Course APIs ──
+
 export const getCourses = async () => {
     const { data } = await axios.get(`${API}course`);
     return data;
 };
 
-// Get single course by id
 export const getCourseById = async (id) => {
     const { data } = await axios.get(`${API}course/${id}`);
     return data;
 };
 
-// Add new course
 export const addCourse = async (courseData) => {
     const { data } = await axios.post(`${API}courses`, courseData);
     return data;
 };
 
-// Update course by id
 export const updateCourse = async (id, courseData) => {
     const { data } = await axios.put(`${API}course/${id}`, courseData);
     return data;
 };
 
-// Delete course by id
 export const deleteCourse = async (id) => {
     const { data } = await axios.delete(`${API}course/${id}`);
     return data;

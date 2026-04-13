@@ -8,6 +8,8 @@ import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../../context/AppContext';
 import useAuth from '../../../hooks/useAuth';
+import { saveUser, getUserByEmail } from '../../../utils';
+import GoogleInfoModal from '../../../components/GoogleInfoModal';
 import authImg from '../../../assets/login_page-removebg-preview.png';
 import logo from '../../../assets/SmartKids_logo_final.png';
 
@@ -50,29 +52,88 @@ const Login = () => {
     const from = location.state || '/';
     const { signIn, signInWithGoogle, loading, setLoading } = useAuth();
     const [showPass, setShowPass] = useState(false);
+    const [googleUser, setGoogleUser] = useState(null);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const { register, handleSubmit, formState: { errors } } = useForm();
+
+    // Redirect based on role
+    const redirectByRole = async (email) => {
+        try {
+            const dbUser = await getUserByEmail(email);
+            if (dbUser?.role === 'admin') navigate('/admin', { replace: true });
+            else navigate('/dashboard', { replace: true });
+        } catch {
+            navigate('/dashboard', { replace: true });
+        }
+    };
 
     const onSubmit = async (data) => {
         setLoading(true);
         try {
             await signIn(data.email, data.password);
             toast.success(lang === 'bn' ? 'সাইন ইন সফল!' : 'Login Successful!');
-            navigate(from, { replace: true });
+            await redirectByRole(data.email);
         } catch (err) { toast.error(err?.message); }
         finally { setLoading(false); }
     };
 
+    // Step 1: Google sign in → check if new user
     const handleGoogle = async () => {
-        setLoading(true);
         try {
-            await signInWithGoogle();
-            toast.success(lang === 'bn' ? 'সাইন ইন সফল!' : 'Login Successful!');
-            navigate(from, { replace: true });
-        } catch (err) { toast.error(err?.message); }
-        finally { setLoading(false); }
+            setGoogleLoading(true);
+            const { user } = await signInWithGoogle();
+
+            let dbUser = null;
+            try {
+                dbUser = await getUserByEmail(user.email);
+            } catch {
+                dbUser = null;
+            }
+
+            if (dbUser?._id) {
+                toast.success(lang === 'bn' ? 'সাইন ইন সফল!' : 'Login Successful!');
+                if (dbUser.role === 'admin') navigate('/admin', { replace: true });
+                else navigate('/dashboard', { replace: true });
+            } else {
+                setGoogleUser(user); // show modal
+            }
+        } catch (err) {
+            toast.error(err?.message);
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    // Step 2: After modal submit — save to DB with all fields
+    const handleGoogleModalComplete = async (extraData) => {
+        setGoogleLoading(true);
+        try {
+            await saveUser({
+                name: extraData.parentName || googleUser.displayName,
+                email: googleUser.email,
+                photoURL: googleUser.photoURL,
+                phone: extraData.phone,
+                childName: extraData.childName,
+                childClass: extraData.childClass,
+                childImageURL: extraData.childImageURL || '',
+                dashboardPin: extraData.dashboardPin,
+                role: 'guardian',
+            });
+            setGoogleUser(null);
+            toast.success(lang === 'bn' ? 'সাইন আপ সফল!' : 'Signup Successful!');
+            navigate('/dashboard', { replace: true });
+        } catch (err) {
+            toast.error(err?.message);
+        } finally {
+            setGoogleLoading(false);
+        }
     };
 
     return (
+        <>
+        {googleUser && (
+            <GoogleInfoModal googleUser={googleUser} onComplete={handleGoogleModalComplete} loading={googleLoading} />
+        )}
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
             {/* ── Left: Image Panel ── */}
@@ -121,7 +182,7 @@ const Login = () => {
                         onClick={handleGoogle} type="button"
                         className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl border-2 border-base-300 bg-base-100 hover:border-primary/40 hover:bg-primary/5 transition-all font-semibold text-neutral text-sm mb-5"
                     >
-                        <FcGoogle size={22} /> {c.googleBtn}
+                        {googleLoading ? <TbFidgetSpinner className="animate-spin text-xl" /> : <><FcGoogle size={22} /> {c.googleBtn}</>}
                     </motion.button>
 
                     {/* Divider */}
@@ -179,6 +240,7 @@ const Login = () => {
                 </motion.div>
             </div>
         </div>
+        </>
     );
 };
 

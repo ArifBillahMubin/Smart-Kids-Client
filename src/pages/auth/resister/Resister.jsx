@@ -8,7 +8,8 @@ import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock, FaPhone, FaChild } from 
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../../context/AppContext';
 import useAuth from '../../../hooks/useAuth';
-import { imageUpload } from '../../../utils';
+import { imageUpload, saveUser, getUserByEmail } from '../../../utils';
+import GoogleInfoModal from '../../../components/GoogleInfoModal';
 import authImg from '../../../assets/login_page-removebg-preview.png';
 import logo from '../../../assets/SmartKids_logo_final.png';
 
@@ -25,6 +26,8 @@ const t = {
         childClass: "Child's Class", childClassPh: 'Select class',
         parentImg: 'Parent Photo', childImg: "Child's Photo",
         pass: 'Password', passPh: '••••••••',
+        pin: 'Dashboard PIN (4 digits)', pinPh: '••••',
+        pinHint: 'Prevents your child from accessing the guardian dashboard.',
         btn: 'Create Account',
         googleBtn: 'Sign up with Google',
         or: 'or sign up with email',
@@ -43,6 +46,8 @@ const t = {
         childClass: 'সন্তানের শ্রেণি', childClassPh: 'শ্রেণি নির্বাচন করুন',
         parentImg: 'অভিভাবকের ছবি', childImg: 'সন্তানের ছবি',
         pass: 'পাসওয়ার্ড', passPh: '••••••••',
+        pin: 'ড্যাশবোর্ড PIN (৪ সংখ্যা)', pinPh: '••••',
+        pinHint: 'আপনার সন্তানকে অভিভাবক ড্যাশবোর্ড অ্যাক্সেস করতে বাধা দেবে।',
         btn: 'অ্যাকাউন্ট তৈরি করুন',
         googleBtn: 'Google দিয়ে সাইন আপ',
         or: 'অথবা ইমেইল দিয়ে',
@@ -77,36 +82,98 @@ const Resister = () => {
     const navigate = useNavigate();
     const { createUser, updateUserProfile, signInWithGoogle, loading, setLoading } = useAuth();
     const [showPass, setShowPass] = useState(false);
+    const [showPin, setShowPin] = useState(false);
     const [parentPreview, setParentPreview] = useState(null);
     const [childPreview, setChildPreview] = useState(null);
-    const { register, handleSubmit, watch, formState: { errors } } = useForm();
-    const password = watch('password');
+    const [googleUser, setGoogleUser] = useState(null);
+    const [googleLoading, setGoogleLoading] = useState(false);
+    const { register, handleSubmit, formState: { errors } } = useForm();
 
     const onSubmit = async (data) => {
         setLoading(true);
         try {
             const parentImageURL = await imageUpload(data.parentImage[0]);
             const childImageURL = await imageUpload(data.childImage[0]);
+
+            // Create Firebase user
             await createUser(data.email, data.password);
+            // Update Firebase profile
             await updateUserProfile(data.parentName, parentImageURL);
-            console.log({ ...data, parentImageURL, childImageURL });
+
+            // Save user to DB with role
+            await saveUser({
+                name: data.parentName,
+                email: data.email,
+                photoURL: parentImageURL,
+                phone: data.phone,
+                childName: data.childName,
+                childClass: data.childClass,
+                childImageURL,
+                dashboardPin: data.dashboardPin,
+                role: 'guardian',
+            });
+
             toast.success(lang === 'bn' ? 'অ্যাকাউন্ট তৈরি সফল!' : 'Account Created!');
-            navigate('/');
+            navigate('/dashboard');
         } catch (err) { toast.error(err?.message); }
         finally { setLoading(false); }
     };
 
+    // Google sign up — same flow as Login
     const handleGoogle = async () => {
-        setLoading(true);
         try {
-            await signInWithGoogle();
+            setGoogleLoading(true);
+            const { user } = await signInWithGoogle();
+
+            // Check if already in DB
+            let dbUser = null;
+            try { dbUser = await getUserByEmail(user.email); } catch { dbUser = null; }
+
+            if (dbUser?._id) {
+                // Already registered — redirect
+                toast.success(lang === 'bn' ? 'সাইন ইন সফল!' : 'Login Successful!');
+                navigate('/dashboard', { replace: true });
+            } else {
+                // New user — show modal
+                setGoogleUser(user);
+            }
+        } catch (err) {
+            toast.error(err?.message);
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    // After modal submit
+    const handleGoogleModalComplete = async (extraData) => {
+        setGoogleLoading(true);
+        try {
+            await saveUser({
+                name: extraData.parentName || googleUser.displayName,
+                email: googleUser.email,
+                photoURL: googleUser.photoURL,
+                phone: extraData.phone,
+                childName: extraData.childName,
+                childClass: extraData.childClass,
+                childImageURL: extraData.childImageURL || '',
+                dashboardPin: extraData.dashboardPin,
+                role: 'guardian',
+            });
+            setGoogleUser(null);
             toast.success(lang === 'bn' ? 'সাইন আপ সফল!' : 'Signup Successful!');
-            navigate('/');
-        } catch (err) { toast.error(err?.message); }
-        finally { setLoading(false); }
+            navigate('/dashboard', { replace: true });
+        } catch (err) {
+            toast.error(err?.message);
+        } finally {
+            setGoogleLoading(false);
+        }
     };
 
     return (
+        <>
+        {googleUser && (
+            <GoogleInfoModal googleUser={googleUser} onComplete={handleGoogleModalComplete} loading={googleLoading} />
+        )}
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
             {/* ── Left: Image Panel ── */}
@@ -153,7 +220,7 @@ const Resister = () => {
                         onClick={handleGoogle} type="button"
                         className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl border-2 border-base-300 bg-base-100 hover:border-primary/40 hover:bg-primary/5 transition-all font-semibold text-neutral text-sm mb-4"
                     >
-                        <FcGoogle size={22} /> {c.googleBtn}
+                        {googleLoading ? <TbFidgetSpinner className="animate-spin text-xl" /> : <><FcGoogle size={22} /> {c.googleBtn}</>}
                     </motion.button>
 
                     <div className="flex items-center gap-3 mb-4">
@@ -251,6 +318,28 @@ const Resister = () => {
                             {errors.password && <p className="text-error text-xs">{errors.password.message}</p>}
                         </div>
 
+                        {/* Dashboard PIN */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-semibold text-neutral/70">{c.pin}</label>
+                            <div className="relative">
+                                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral/30 text-xs" />
+                                <input type={showPin ? 'text' : 'password'} placeholder={c.pinPh}
+                                    maxLength={4}
+                                    className={`w-full pl-9 pr-10 py-2.5 rounded-2xl border-2 bg-base-100 text-neutral text-sm outline-none focus:border-primary tracking-widest transition-all ${errors.dashboardPin ? 'border-error' : 'border-base-300'}`}
+                                    {...register('dashboardPin', {
+                                        required: c.err.req,
+                                        pattern: { value: /^\d{4}$/, message: lang === 'bn' ? 'ঠিক ৪ সংখ্যা' : 'Must be 4 digits' }
+                                    })} />
+                                <button type="button" onClick={() => setShowPin(p => !p)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral/40 hover:text-neutral">
+                                    {showPin ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
+                            {errors.dashboardPin
+                                ? <p className="text-error text-xs">{errors.dashboardPin.message}</p>
+                                : <p className="text-neutral/40 text-xs">{c.pinHint}</p>}
+                        </div>
+
                         <motion.button
                             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                             type="submit"
@@ -267,6 +356,7 @@ const Resister = () => {
                 </motion.div>
             </div>
         </div>
+        </>
     );
 };
 
