@@ -5,7 +5,8 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
-import { getCourseById } from '../../utils';
+import { getCourseById, getEnrollments } from '../../utils';
+import useAuth from '../../hooks/useAuth';
 import EnrollModal from '../../components/modals/EnrollModal';
 
 const CourseDetails = () => {
@@ -211,7 +212,16 @@ const CourseDetails = () => {
 };
 
 // Simple card with price info + open modal button
-const EnrollButton = ({ course, lang, enrolled, onOpen }) => (
+const EnrollButton = ({ course, lang, enrolled, onOpen }) => {
+    const { user } = useAuth();
+    const { data: enrollments = [] } = useQuery({
+        queryKey: ['enrollments', user?.email],
+        queryFn: () => getEnrollments(user?.email),
+        enabled: !!user?.email,
+    });
+    const isEnrolled = enrolled || enrollments.some(e => e.courseId === course?._id);
+
+    return (
     <div className="flex flex-col gap-4">
         <div className="text-center">
             {course.priceAmount === 0 ? (
@@ -228,10 +238,10 @@ const EnrollButton = ({ course, lang, enrolled, onOpen }) => (
             )}
         </div>
         <motion.button
-            whileHover={{ scale: enrolled ? 1 : 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={enrolled ? undefined : onOpen}
-            className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all ${enrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg'}`}>
-            {enrolled
+            whileHover={{ scale: isEnrolled ? 1 : 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={isEnrolled ? undefined : onOpen}
+            className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all ${isEnrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg'}`}>
+            {isEnrolled
                 ? (lang === 'bn' ? '✅ ভর্তি হয়েছেন!' : '✅ Enrolled!')
                 : (lang === 'bn' ? 'এখনই ভর্তি হন' : 'Enroll Now')}
         </motion.button>
@@ -249,6 +259,7 @@ const EnrollButton = ({ course, lang, enrolled, onOpen }) => (
             ))}
         </div>
     </div>
-);
+    );
+};
 
 export default CourseDetails;

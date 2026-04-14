@@ -27,6 +27,12 @@ export const getUserByEmail = async (email) => {
     return data;
 };
 
+// Update user profile
+export const updateUserProfile_DB = async (email, updateData) => {
+    const { data } = await axios.put(`${API}users/${email}`, updateData);
+    return data;
+};
+
 // ── Course APIs ──
 
 export const getCourses = async () => {
@@ -148,4 +154,28 @@ export const uploadVideoToCloudinary = async (file, onProgress) => {
         xhr.onerror = () => reject(new Error('Network error'));
         xhr.send(formData);
     });
+};
+
+// ── Lesson Progress APIs ──
+export const markLessonWatched = async (userEmail, courseId, lessonId) => {
+    const { data } = await axios.post(`${API}lesson-progress/watch`, { userEmail, courseId, lessonId });
+    return data;
+};
+export const markLessonComplete = async (userEmail, courseId, lessonId) => {
+    const { data } = await axios.post(`${API}lesson-progress/complete`, { userEmail, courseId, lessonId });
+    return data;
+};
+export const getLessonProgress = async (userEmail, courseId) => {
+    const { data } = await axios.get(`${API}lesson-progress/${userEmail}/${courseId}`);
+    return data;
+};
+
+// ── Quiz Result APIs ──
+export const saveQuizResult = async (resultData) => {
+    const { data } = await axios.post(`${API}quiz-results`, resultData);
+    return data;
+};
+export const getQuizResults = async (userEmail, courseId) => {
+    const { data } = await axios.get(`${API}quiz-results/${userEmail}/${courseId}`);
+    return data;
 };

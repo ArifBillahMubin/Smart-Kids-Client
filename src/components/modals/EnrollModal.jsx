@@ -5,9 +5,10 @@ import { FaBook, FaClock, FaGraduationCap, FaUsers, FaStar, FaCheckCircle, FaTim
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
 import useAuth from '../../hooks/useAuth';
-import { enrollFree, createCheckoutSession } from '../../utils';
+import { enrollFree, createCheckoutSession, getEnrollments } from '../../utils';
 import confetti from 'canvas-confetti';
 
 const t = {
@@ -47,6 +48,17 @@ const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnrolled }) => {
     const navigate = useNavigate();
     const c = t[lang];
     const [loading, setLoading] = useState(false);
+
+    // Check if already enrolled from DB
+    const { data: enrollments = [] } = useQuery({
+        queryKey: ['enrollments', user?.email],
+        queryFn: () => getEnrollments(user.email),
+        enabled: !!user?.email,
+    });
+
+    const alreadyEnrolled = enrollments.some(e => e.courseId === course?._id);
+    // Use prop enrolled OR DB check
+    const isEnrolled = enrolled || alreadyEnrolled;
 
     if (!course) return null;
 
@@ -205,13 +217,13 @@ const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnrolled }) => {
                                                 {c.cancel}
                                             </button>
                                             <motion.button
-                                                whileHover={{ scale: enrolled ? 1 : 1.02 }}
+                                                whileHover={{ scale: isEnrolled ? 1 : 1.02 }}
                                                 whileTap={{ scale: 0.97 }}
-                                                onClick={enrolled ? undefined : handleEnroll}
-                                                disabled={loading || enrolled}
-                                                className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${enrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md'} disabled:opacity-70`}>
+                                                onClick={isEnrolled ? undefined : handleEnroll}
+                                                disabled={loading || isEnrolled}
+                                                className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${isEnrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md'} disabled:opacity-70`}>
                                                 {loading && <TbFidgetSpinner className="animate-spin" />}
-                                                {enrolled ? c.enrolledBtn : isFree ? c.enrollFreeBtn : c.enrollPaidBtn}
+                                                {isEnrolled ? c.enrolledBtn : isFree ? c.enrollFreeBtn : c.enrollPaidBtn}
                                             </motion.button>
                                         </div>
                                     )}
