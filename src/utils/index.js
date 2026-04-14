@@ -79,3 +79,73 @@ export const getEnrollments = async (email) => {
     const { data } = await axios.get(`${API}enrollments/${email}`);
     return data;
 };
+
+// ── Lesson APIs ──
+export const getLessons = async (courseId) => {
+    const { data } = await axios.get(`${API}lessons/${courseId}`);
+    return data;
+};
+export const addLesson = async (lessonData) => {
+    const { data } = await axios.post(`${API}lessons`, lessonData);
+    return data;
+};
+export const updateLesson = async (id, lessonData) => {
+    const { data } = await axios.put(`${API}lessons/${id}`, lessonData);
+    return data;
+};
+export const deleteLesson = async (id) => {
+    const { data } = await axios.delete(`${API}lessons/${id}`);
+    return data;
+};
+
+// ── Quiz APIs ──
+export const getQuizByLesson = async (lessonId) => {
+    const { data } = await axios.get(`${API}quizzes/${lessonId}`);
+    return data;
+};
+export const getQuizzesByCourse = async (courseId) => {
+    const { data } = await axios.get(`${API}quizzes/course/${courseId}`);
+    return data;
+};
+export const addQuiz = async (quizData) => {
+    const { data } = await axios.post(`${API}quizzes`, quizData);
+    return data;
+};
+export const updateQuiz = async (id, quizData) => {
+    const { data } = await axios.put(`${API}quizzes/${id}`, quizData);
+    return data;
+};
+export const deleteQuiz = async (id) => {
+    const { data } = await axios.delete(`${API}quizzes/${id}`);
+    return data;
+};
+
+// ── Cloudinary Video Upload ──
+export const uploadVideoToCloudinary = async (file, onProgress) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+    formData.append('resource_type', 'video');
+    formData.append('folder', 'smartkids/videos');
+
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/video/upload`);
+
+        // Track upload progress
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable && onProgress) {
+                onProgress(Math.round((e.loaded / e.total) * 100));
+            }
+        };
+
+        xhr.onload = () => {
+            const data = JSON.parse(xhr.responseText);
+            if (xhr.status === 200) resolve(data.secure_url);
+            else reject(new Error(data.error?.message || 'Upload failed'));
+        };
+
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
+    });
+};

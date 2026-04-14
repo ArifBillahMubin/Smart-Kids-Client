@@ -10,12 +10,14 @@ const navItems = {
     en: [
         { label: 'Home', to: '/' },
         { label: 'Courses', to: '/courses' },
+        { label: 'My Class', to: '/my-class' },
         { label: 'About', to: '/about' },
         { label: 'Contact', to: '/contact' },
     ],
     bn: [
         { label: 'হোম', to: '/' },
         { label: 'কোর্স', to: '/courses' },
+        { label: 'আমার ক্লাস', to: '/my-class' },
         { label: 'আমাদের', to: '/about' },
         { label: 'যোগাযোগ', to: '/contact' },
     ],

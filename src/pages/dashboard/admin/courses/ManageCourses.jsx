@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaBook, FaUsers, FaSpinner } from 'react-icons/fa';
@@ -214,6 +215,10 @@ const ManageCourses = () => {
                                     <span className="flex items-center gap-1"><FaUsers className="text-accent" />{c.enrolled || 0}</span>
                                 </div>
                                 <div className="flex gap-2">
+                                    <Link to={`/admin/courses/${c._id}/manage`}
+                                        className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all">
+                                        🎬 Manage
+                                    </Link>
                                     <button onClick={() => openEdit(c)}
                                         className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-secondary/10 text-secondary text-xs font-bold hover:bg-secondary hover:text-white transition-all">
                                         <FaEdit /> Edit

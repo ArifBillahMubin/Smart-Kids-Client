@@ -1,26 +1,11 @@
 import { motion } from 'framer-motion';
-import { FaBook, FaTrophy, FaClock, FaStar, FaArrowUp, FaFire } from 'react-icons/fa';
+import { FaBook, FaTrophy, FaClock, FaStar, FaFire, FaArrowRight } from 'react-icons/fa';
+import { TbFidgetSpinner } from 'react-icons/tb';
+import { Link } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-
-const stats = [
-    { icon: <FaBook />, color: 'text-primary', bg: 'bg-primary/10', labelEn: 'Courses Enrolled', labelBn: 'ভর্তি কোর্স', value: 6 },
-    { icon: <FaTrophy />, color: 'text-secondary', bg: 'bg-secondary/10', labelEn: 'Badges Earned', labelBn: 'অর্জিত ব্যাজ', value: 12 },
-    { icon: <FaClock />, color: 'text-accent', bg: 'bg-accent/10', labelEn: 'Hours Learned', labelBn: 'শেখার ঘণ্টা', value: 48 },
-    { icon: <FaStar />, color: 'text-warning', bg: 'bg-warning/10', labelEn: 'Stars Collected', labelBn: 'সংগৃহীত স্টার', value: 320 },
-];
-
-const recentActivity = [
-    { subject: 'Mathematics', topic: 'Fractions', score: 92, time: '2h ago', color: 'bg-primary' },
-    { subject: 'Science', topic: 'Solar System', score: 88, time: '1d ago', color: 'bg-success' },
-    { subject: 'English', topic: 'Grammar', score: 75, time: '2d ago', color: 'bg-accent' },
-    { subject: 'Bangla', topic: 'Poem Reading', score: 95, time: '3d ago', color: 'bg-secondary' },
-];
-
-const weeklyProgress = [
-    { day: 'Mon', value: 60 }, { day: 'Tue', value: 80 }, { day: 'Wed', value: 45 },
-    { day: 'Thu', value: 90 }, { day: 'Fri', value: 70 }, { day: 'Sat', value: 85 }, { day: 'Sun', value: 55 },
-];
+import { getEnrollments } from '../../../../utils';
 
 const container = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
 const card = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -29,25 +14,51 @@ const Overview = () => {
     const { lang } = useApp();
     const { user } = useAuth();
 
+    const { data: enrollments = [], isLoading } = useQuery({
+        queryKey: ['enrollments', user?.email],
+        queryFn: () => getEnrollments(user.email),
+        enabled: !!user?.email,
+    });
+
+    const paidCount = enrollments.filter(e => e.payment).length;
+    const freeCount = enrollments.filter(e => !e.payment).length;
+
+    const stats = [
+        { icon: <FaBook />, color: 'text-primary', bg: 'bg-primary/10', labelEn: 'Courses Enrolled', labelBn: 'ভর্তি কোর্স', value: enrollments.length },
+        { icon: <FaTrophy />, color: 'text-secondary', bg: 'bg-secondary/10', labelEn: 'Paid Courses', labelBn: 'পেইড কোর্স', value: paidCount },
+        { icon: <FaStar />, color: 'text-success', bg: 'bg-success/10', labelEn: 'Free Courses', labelBn: 'বিনামূল্যে কোর্স', value: freeCount },
+        { icon: <FaClock />, color: 'text-accent', bg: 'bg-accent/10', labelEn: 'Active', labelBn: 'সক্রিয়', value: enrollments.length },
+    ];
+
+    if (isLoading) return (
+        <div className="flex justify-center py-20">
+            <TbFidgetSpinner className="animate-spin text-primary text-3xl" />
+        </div>
+    );
+
     return (
         <div className="flex flex-col gap-6">
             {/* Welcome */}
-            <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-                className="bg-gradient-to-r from-primary/20 via-base-100 to-secondary/10 rounded-3xl p-6 border border-base-300 flex items-center justify-between gap-4">
+            <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-primary/20 via-base-100 to-secondary/10 rounded-3xl p-6 border border-base-300 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                     <h2 className="text-2xl font-bold text-neutral">
-                        {lang === 'bn' ? `স্বাগতম, ${user?.displayName?.split(' ')[0] || 'অভিভাবক'}! 👋` : `Welcome back, ${user?.displayName?.split(' ')[0] || 'Guardian'}! 👋`}
+                        {lang === 'bn'
+                            ? `স্বাগতম, ${user?.displayName?.split(' ')[0] || 'অভিভাবক'}! 👋`
+                            : `Welcome back, ${user?.displayName?.split(' ')[0] || 'Guardian'}! 👋`}
                     </h2>
                     <p className="text-neutral/50 text-sm mt-1">
-                        {lang === 'bn' ? 'আপনার সন্তানের আজকের অগ্রগতি দেখুন।' : "Here's your child's learning summary for today."}
+                        {lang === 'bn' ? 'আপনার সন্তানের শেখার সারসংক্ষেপ।' : "Here's your child's learning summary."}
                     </p>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 bg-success/15 text-success px-4 py-2 rounded-full text-sm font-bold">
-                    <FaFire /> {lang === 'bn' ? '৭ দিনের স্ট্রিক!' : '7 Day Streak!'}
-                </div>
+                {enrollments.length > 0 && (
+                    <div className="flex items-center gap-2 bg-success/15 text-success px-4 py-2 rounded-full text-sm font-bold">
+                        <FaFire /> {enrollments.length} {lang === 'bn' ? 'টি কোর্সে ভর্তি' : 'courses enrolled'}
+                    </div>
+                )}
             </motion.div>
 
-            {/* Stat cards */}
+            {/* Stats */}
             <motion.div variants={container} initial="hidden" animate="visible"
                 className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((s, i) => (
@@ -62,79 +73,47 @@ const Overview = () => {
                 ))}
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Weekly progress bar chart */}
-                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
-                    className="lg:col-span-2 bg-base-100 rounded-3xl p-6 border border-base-300">
-                    <h3 className="font-bold text-neutral mb-5">{lang === 'bn' ? 'সাপ্তাহিক অগ্রগতি' : 'Weekly Progress'}</h3>
-                    <div className="flex items-end gap-3 h-36">
-                        {weeklyProgress.map((d, i) => (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                                <motion.div
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${d.value}%` }}
-                                    transition={{ duration: 0.6, delay: i * 0.08 }}
-                                    className="w-full bg-primary/20 rounded-t-xl relative overflow-hidden"
-                                    style={{ height: `${d.value}%` }}
-                                >
-                                    <div className="absolute bottom-0 left-0 right-0 bg-primary rounded-t-xl" style={{ height: '40%' }} />
-                                </motion.div>
-                                <span className="text-xs text-neutral/40 font-medium">{d.day}</span>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Child info card */}
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}
-                    className="bg-base-100 rounded-3xl p-6 border border-base-300 flex flex-col gap-4">
-                    <h3 className="font-bold text-neutral">{lang === 'bn' ? 'সন্তানের তথ্য' : "Child's Info"}</h3>
-                    <div className="flex flex-col items-center gap-3 py-2">
-                        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl">🧒</div>
-                        <div className="text-center">
-                            <p className="font-bold text-neutral">Rafi Ahmed</p>
-                            <p className="text-xs text-neutral/50">Class 3 · Age 8</p>
-                        </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        {[{ label: 'Math', pct: 85 }, { label: 'Science', pct: 72 }, { label: 'English', pct: 90 }].map((s, i) => (
-                            <div key={i}>
-                                <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-neutral/60">{s.label}</span>
-                                    <span className="font-bold text-neutral">{s.pct}%</span>
-                                </div>
-                                <div className="h-2 bg-base-300 rounded-full overflow-hidden">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct}%` }}
-                                        transition={{ duration: 0.8, delay: 0.5 + i * 0.1 }}
-                                        className="h-full bg-primary rounded-full" />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* Recent activity */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+            {/* Recent enrollments */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                 className="bg-base-100 rounded-3xl p-6 border border-base-300">
-                <h3 className="font-bold text-neutral mb-4">{lang === 'bn' ? 'সাম্প্রতিক কার্যক্রম' : 'Recent Activity'}</h3>
-                <div className="flex flex-col gap-3">
-                    {recentActivity.map((a, i) => (
-                        <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-base-200 transition-colors">
-                            <div className={`${a.color} w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-sm shrink-0`}>
-                                {a.subject[0]}
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-semibold text-neutral text-sm">{a.subject}</p>
-                                <p className="text-neutral/40 text-xs">{a.topic}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-bold text-success text-sm flex items-center gap-1"><FaArrowUp className="text-xs" />{a.score}%</p>
-                                <p className="text-neutral/40 text-xs">{a.time}</p>
-                            </div>
-                        </div>
-                    ))}
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="font-bold text-neutral">{lang === 'bn' ? 'সাম্প্রতিক কোর্সসমূহ' : 'Recent Enrollments'}</h3>
+                    <Link to="/dashboard/my-courses" className="text-primary text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all">
+                        {lang === 'bn' ? 'সব দেখুন' : 'View all'} <FaArrowRight className="text-xs" />
+                    </Link>
                 </div>
+
+                {enrollments.length === 0 ? (
+                    <div className="text-center py-10">
+                        <p className="text-4xl mb-3">📚</p>
+                        <p className="text-neutral/50 text-sm mb-4">
+                            {lang === 'bn' ? 'এখনো কোনো কোর্সে ভর্তি হননি' : 'No courses enrolled yet'}
+                        </p>
+                        <Link to="/courses"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all">
+                            {lang === 'bn' ? 'কোর্স দেখুন' : 'Browse Courses'}
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-3">
+                        {enrollments.slice(0, 5).map((e, i) => (
+                            <div key={e._id || i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-base-200 transition-colors">
+                                <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-lg shrink-0">
+                                    📖
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-neutral text-sm truncate">{e.courseTitle}</p>
+                                    <p className="text-neutral/40 text-xs">
+                                        {new Date(e.enrolledAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${e.payment ? 'bg-primary/15 text-primary' : 'bg-success/15 text-success'}`}>
+                                    {e.payment ? (lang === 'bn' ? 'পেইড' : 'Paid') : (lang === 'bn' ? 'ফ্রি' : 'Free')}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </motion.div>
         </div>
     );
