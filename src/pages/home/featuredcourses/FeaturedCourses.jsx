@@ -23,7 +23,7 @@ const FeaturedCourses = () => {
     return (
         <section className="py-16 px-6 bg-base-100">
             <div className="max-w-7xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
                     className="flex items-end justify-between mb-10 flex-wrap gap-4">
                     <div>
                         <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">
@@ -52,7 +52,7 @@ const FeaturedCourses = () => {
                 )}
 
                 {!isLoading && featured.length > 0 && (
-                    <motion.div variants={container} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    <motion.div key={`featured-${lang}`} variants={container} initial="hidden" whileInView="visible" viewport={{ once: false }}
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {featured.map(course => (
                             <motion.div key={course._id} variants={card} whileHover={{ y: -6 }}

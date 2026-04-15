@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlay, FaQuestionCircle, FaChevronDown, FaChevronUp, FaCheckCircle, FaBook, FaLock } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../context/AppContext';
 import useAuth from '../../hooks/useAuth';
@@ -179,49 +179,60 @@ const QuizSection = ({ lessonId, courseId, lang, userEmail, quizResults, hasQuiz
 
 // ── Main ──
 const MyClass = () => {
-    const { lang, activeClassCourseId } = useApp();
+    const { lang, activeClassCourseId, setActiveClassCourseId } = useApp();
     const { user } = useAuth();
+    const { courseId: paramCourseId } = useParams();
     const queryClient = useQueryClient();
     const [activeLesson, setActiveLesson] = useState(null);
     const [showQuiz, setShowQuiz] = useState(false);
+
+    // URL param takes priority, fallback to context
+    const courseId = paramCourseId || activeClassCourseId;
+
+    // Sync param courseId into context if needed
+    useEffect(() => {
+        if (paramCourseId && paramCourseId !== activeClassCourseId) {
+            setActiveClassCourseId(paramCourseId);
+        }
+    }, [paramCourseId]);
 
     const userEmail = user?.email;
 
     // ── Fetch course, lessons, progress, quiz results ──
     const { data: course } = useQuery({
-        queryKey: ['course', activeClassCourseId],
-        queryFn: () => getCourseById(activeClassCourseId),
-        enabled: !!activeClassCourseId,
+        queryKey: ['course', courseId],
+        queryFn: () => getCourseById(courseId),
+        enabled: !!courseId,
     });
 
     const { data: lessons = [], isLoading } = useQuery({
-        queryKey: ['lessons', activeClassCourseId],
-        queryFn: () => getLessons(activeClassCourseId),
-        enabled: !!activeClassCourseId,
+        queryKey: ['lessons', courseId],
+        queryFn: () => getLessons(courseId),
+        enabled: !!courseId,
     });
 
     const { data: progress = [] } = useQuery({
-        queryKey: ['lessonProgress', userEmail, activeClassCourseId],
-        queryFn: () => getLessonProgress(userEmail, activeClassCourseId),
-        enabled: !!userEmail && !!activeClassCourseId,
+        queryKey: ['lessonProgress', userEmail, courseId],
+        queryFn: () => getLessonProgress(userEmail, courseId),
+        enabled: !!userEmail && !!courseId,
     });
 
     const { data: quizResults = [] } = useQuery({
-        queryKey: ['quizResults', userEmail, activeClassCourseId],
-        queryFn: () => getQuizResults(userEmail, activeClassCourseId),
-        enabled: !!userEmail && !!activeClassCourseId,
+        queryKey: ['quizResults', userEmail, courseId],
+        queryFn: () => getQuizResults(userEmail, courseId),
+        enabled: !!userEmail && !!courseId,
     });
 
     // ── Mutations ──
     const watchMutation = useMutation({
-        mutationFn: ({ lessonId }) => markLessonWatched(userEmail, activeClassCourseId, lessonId),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, activeClassCourseId] }),
+        mutationFn: ({ lessonId }) => markLessonWatched(userEmail, courseId, lessonId),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, courseId] }),
     });
 
     const completeMutation = useMutation({
-        mutationFn: ({ lessonId }) => markLessonComplete(userEmail, activeClassCourseId, lessonId),
+        mutationFn: ({ lessonId }) => markLessonComplete(userEmail, courseId, lessonId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, activeClassCourseId] });
+            queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, courseId] });
             toast.success(lang === 'bn' ? 'লেসন সম্পন্ন! পরবর্তী লেসন আনলক হয়েছে 🎉' : 'Lesson complete! Next lesson unlocked 🎉');
         },
     });
@@ -267,7 +278,7 @@ const MyClass = () => {
         return acc;
     }, {});
 
-    if (!activeClassCourseId) return (
+    if (!courseId) return (
         <div className="min-h-screen bg-base-200 flex items-center justify-center p-6">
             <div className="text-center max-w-sm">
                 <p className="text-6xl mb-4">📚</p>
@@ -336,7 +347,7 @@ const MyClass = () => {
                             {isWatched(currentLesson._id) && !isCompleted(currentLesson._id) && (
                                 <QuizSection
                                     lessonId={currentLesson._id}
-                                    courseId={activeClassCourseId}
+                                    courseId={courseId}
                                     lang={lang}
                                     userEmail={userEmail}
                                     quizResults={quizResults}
@@ -357,7 +368,7 @@ const MyClass = () => {
                                     <AnimatePresence>
                                         {showQuiz && (
                                             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                                                <QuizSection lessonId={currentLesson._id} courseId={activeClassCourseId} lang={lang} userEmail={userEmail} quizResults={quizResults} />
+                                                <QuizSection lessonId={currentLesson._id} courseId={courseId} lang={lang} userEmail={userEmail} quizResults={quizResults} />
                                             </motion.div>
                                         )}
                                     </AnimatePresence>

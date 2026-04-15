@@ -10,7 +10,7 @@ import { useApp } from '../context/AppContext';
 
 const PIN_SESSION_KEY = 'sk-pin-verified';
 
-const PrivateRoute = ({ children }) => {
+const AdminRoute = ({ children }) => {
     const { user, loading } = useAuth();
     const { lang } = useApp();
     const location = useLocation();
@@ -32,6 +32,7 @@ const PrivateRoute = ({ children }) => {
     );
 
     if (!user) return <Navigate to="/login" state={location.pathname} replace />;
+    if (dbUser?.role !== 'admin') return <Navigate to="/dashboard" replace />;
 
     const hasPin = !!dbUser?.dashboardPin;
 
@@ -55,4 +56,4 @@ const PrivateRoute = ({ children }) => {
     return children;
 };
 
-export default PrivateRoute;
+export default AdminRoute;

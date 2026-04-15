@@ -3,6 +3,7 @@ import RootLayout from "../layout/RootLayout";
 import AuthLayout from "../layout/AuthLayout";
 import DashboardLayout from "../layout/DashboardLayout";
 import PrivateRoute from "../components/PrivateRoute";
+import AdminRoute from "../components/AdminRoute";
 import Home from "../pages/home/home/Home";
 import Resister from "../pages/auth/resister/Resister";
 import Login from "../pages/auth/login/Login";
@@ -25,6 +26,7 @@ import ManageUsers from "../pages/dashboard/admin/users/ManageUsers";
 import ManageCourses from "../pages/dashboard/admin/courses/ManageCourses";
 import CourseManager from "../pages/dashboard/admin/courses/CourseManager";
 import AdminReports from "../pages/dashboard/admin/reports/AdminReports";
+import ManageReviews from "../pages/dashboard/admin/reviews/ManageReviews";
 
 const protect = (el) => <PrivateRoute>{el}</PrivateRoute>;
 
@@ -60,16 +62,17 @@ export const router = createBrowserRouter([
             { path: 'profile', Component: GuardianProfile },
         ]
     },
-    // Admin Dashboard — protected
+    // Admin Dashboard — protected (admin only)
     {
         path: '/admin',
-        element: protect(<DashboardLayout />),
+        element: <AdminRoute><DashboardLayout /></AdminRoute>,
         children: [
             { index: true, Component: AdminOverview },
             { path: 'users', Component: ManageUsers },
             { path: 'courses', Component: ManageCourses },
             { path: 'courses/:id/manage', Component: CourseManager },
             { path: 'reports', Component: AdminReports },
+            { path: 'reviews', Component: ManageReviews },
         ]
     },
     { path: '/payment-success', Component: PaymentSuccess },

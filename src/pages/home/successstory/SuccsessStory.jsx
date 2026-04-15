@@ -41,13 +41,13 @@ const SuccsessStory = () => {
     return (
         <section className="py-20 px-6 bg-base-200 overflow-hidden">
             <div className="max-w-7xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: -30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-12">
+                <motion.div key={`story-header-${lang}`} initial={{ opacity: 0, y: -30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.6 }} className="text-center mb-12">
                     <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">{c.badge}</span>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-neutral">{c.title} <span className="text-primary">{c.highlight}</span></h2>
-                    <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mt-4" />
+                    <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: false }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mt-4" />
                     <p className="text-neutral/50 text-sm mt-3">{c.sub}</p>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: 0.2 }}>
+                <motion.div key={`story-slider-${lang}`} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.7, delay: 0.2 }}>
                     <Swiper modules={[Autoplay, Pagination]} autoplay={{ delay: 3500, disableOnInteraction: false }}
                         pagination={{ clickable: true, el: '.story-dots' }} loop speed={700} spaceBetween={20}
                         breakpoints={{ 0: { slidesPerView: 1 }, 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }}>

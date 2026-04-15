@@ -49,22 +49,22 @@ const OurMissionAndVision = () => {
 
                 {/* MISSION */}
                 <div>
-                    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+                    <motion.div key={`mission-${lang}`} initial="hidden" whileInView="visible" viewport={{ once: false }} variants={fadeUp} className="text-center mb-12">
                         <h2 className="text-4xl md:text-5xl font-extrabold text-white inline-flex items-center gap-3">
                             <FaBullseye className="text-primary" /> {c.missionBadge}
                             <span className="text-primary animate-pulse">_</span>
                         </h2>
-                        <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-accent rounded-full mx-auto mt-4" />
+                        <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: false }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-accent rounded-full mx-auto mt-4" />
                     </motion.div>
                     <div className="flex flex-col md:flex-row items-center gap-12">
-                        <motion.div variants={fadeLeft} initial="hidden" whileInView="visible" viewport={{ once: true }} className="flex-1">
+                        <motion.div variants={fadeLeft} initial="hidden" whileInView="visible" viewport={{ once: false }} className="flex-1">
                             <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10">
                                 <img src={heroImg} alt="Our Mission" className="w-full h-80 object-contain bg-base-200 p-6" />
                             </div>
                         </motion.div>
-                        <motion.div variants={fadeRight} initial="hidden" whileInView="visible" viewport={{ once: true }} className="flex-1 flex flex-col gap-6">
+                        <motion.div variants={fadeRight} initial="hidden" whileInView="visible" viewport={{ once: false }} className="flex-1 flex flex-col gap-6">
                             {c.missionPoints.map((p, i) => (
-                                <motion.div key={i} custom={i * 0.15} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="flex gap-4 items-start">
+                                <motion.div key={`${lang}-m-${i}`} custom={i * 0.15} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: false }} className="flex gap-4 items-start">
                                     <div className="mt-1 text-xl">{p.icon}</div>
                                     <p className="text-white/80 text-sm leading-relaxed">
                                         <span className={`font-bold ${p.color}`}>{p.label}: </span>{p.text}
@@ -77,16 +77,16 @@ const OurMissionAndVision = () => {
 
                 {/* VISION */}
                 <div>
-                    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+                    <motion.div key={`vision-${lang}`} initial="hidden" whileInView="visible" viewport={{ once: false }} variants={fadeUp} className="text-center mb-12">
                         <h2 className="text-4xl md:text-5xl font-extrabold text-white inline-flex items-center gap-3">
                             <FaEye className="text-secondary" /> {c.visionBadge}
                             <span className="text-secondary animate-pulse">_</span>
                         </h2>
-                        <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-secondary to-primary rounded-full mx-auto mt-4" />
+                        <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: false }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-secondary to-primary rounded-full mx-auto mt-4" />
                     </motion.div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {c.visionPoints.map((v, i) => (
-                            <motion.div key={i} custom={i * 0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} whileHover={{ scale: 1.04, y: -6 }}
+                            <motion.div key={`${lang}-v-${i}`} custom={i * 0.2} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: false }} whileHover={{ scale: 1.04, y: -6 }}
                                 className="bg-white/5 border border-white/10 rounded-3xl p-7 flex flex-col items-center text-center gap-4 hover:bg-white/10 transition-colors duration-300 cursor-pointer">
                                 <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 3, delay: i * 0.5, ease: 'easeInOut' }} className="text-4xl">
                                     {v.icon}

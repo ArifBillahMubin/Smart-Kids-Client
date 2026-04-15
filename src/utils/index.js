@@ -179,3 +179,49 @@ export const getQuizResults = async (userEmail, courseId) => {
     const { data } = await axios.get(`${API}quiz-results/${userEmail}/${courseId}`);
     return data;
 };
+
+// ── Progress Reset ──
+export const resetCourseProgress = async (userEmail, courseId) => {
+    const { data } = await axios.delete(`${API}lesson-progress/${userEmail}/${courseId}`);
+    return data;
+};
+
+// ── Review APIs ──
+export const saveReview = async (reviewData) => {
+    const { data } = await axios.post(`${API}reviews`, reviewData);
+    return data;
+};
+export const getCourseReviews = async (courseId) => {
+    const { data } = await axios.get(`${API}reviews/${courseId}`);
+    return data;
+};
+
+// ── Admin APIs ──
+export const getAdminStats = async () => {
+    const { data } = await axios.get(`${API}admin/stats`);
+    return data;
+};
+export const getAdminUsers = async () => {
+    const { data } = await axios.get(`${API}admin/users`);
+    return data;
+};
+export const updateUserRole = async (email, role) => {
+    const { data } = await axios.patch(`${API}admin/users/${email}/role`, { role });
+    return data;
+};
+export const deleteUser = async (email) => {
+    const { data } = await axios.delete(`${API}admin/users/${email}`);
+    return data;
+};
+export const getAdminReviews = async () => {
+    const { data } = await axios.get(`${API}admin/reviews`);
+    return data;
+};
+export const deleteReview = async (id) => {
+    const { data } = await axios.delete(`${API}admin/reviews/${id}`);
+    return data;
+};
+export const getAdminAnalytics = async () => {
+    const { data } = await axios.get(`${API}admin/analytics`);
+    return data;
+};

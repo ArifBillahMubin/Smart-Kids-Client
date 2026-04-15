@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router';
 import { FaFacebookF, FaYoutube, FaTwitter, FaInstagram } from 'react-icons/fa';
 import logo from '../../../assets/SmartKids_logo_final.png';
 import { useApp } from '../../../context/AppContext';
@@ -7,7 +8,7 @@ const content = {
     en: {
         tagline: 'Empowering young minds through fun, interactive, and smart learning experiences.',
         linksTitle: 'Quick Links',
-        links: [{ label: 'Home', href: '/' }, { label: 'Courses', href: '/courses' }, { label: 'About Us', href: '/about' }, { label: 'Blog', href: '/blog' }, { label: 'Contact', href: '/contact' }],
+        links: [{ label: 'Home', href: '/' }, { label: 'Courses', href: '/courses' }, { label: 'Dashboard', href: '/dashboard' }],
         catsTitle: 'Categories',
         cats: ['Math & Science', 'Reading & Writing', 'Arts & Crafts', 'Coding for Kids', 'Languages'],
         newsTitle: 'Stay Updated',
@@ -22,7 +23,7 @@ const content = {
     bn: {
         tagline: 'মজাদার, ইন্টারেক্টিভ এবং স্মার্ট শিক্ষার মাধ্যমে তরুণ মেধাবীদের ক্ষমতায়ন।',
         linksTitle: 'দ্রুত লিংক',
-        links: [{ label: 'হোম', href: '/' }, { label: 'কোর্স', href: '/courses' }, { label: 'আমাদের সম্পর্কে', href: '/about' }, { label: 'ব্লগ', href: '/blog' }, { label: 'যোগাযোগ', href: '/contact' }],
+        links: [{ label: 'হোম', href: '/' }, { label: 'কোর্স', href: '/courses' }, { label: 'ড্যাশবোর্ড', href: '/dashboard' }],
         catsTitle: 'বিষয়সমূহ',
         cats: ['গণিত ও বিজ্ঞান', 'পড়া ও লেখা', 'শিল্প ও কারুকাজ', 'শিশুদের কোডিং', 'ভাষা শিক্ষা'],
         newsTitle: 'আপডেট পান',
@@ -68,9 +69,9 @@ const Footer = () => {
                     <ul className="flex flex-col gap-2 text-sm text-neutral/70">
                         {c.links.map(link => (
                             <li key={link.label}>
-                                <a href={link.href} className="hover:text-primary inline-flex items-center gap-1 transition-all duration-200">
+                                <Link to={link.href} className="hover:text-primary inline-flex items-center gap-1 transition-all duration-200">
                                     <span className="text-primary text-xs">›</span> {link.label}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>

@@ -156,12 +156,16 @@ const GoogleInfoModal = ({ googleUser, onComplete, loading }) => {
 
                                     {/* Dashboard PIN */}
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-sm font-semibold text-neutral/70">{c.pin}</label>
+                                        <label className="text-sm font-semibold text-neutral/70">
+                                            {c.pin} <span className="text-neutral/30 font-normal text-xs">({lang === 'bn' ? 'ঐচ্ছিক' : 'optional'})</span>
+                                        </label>
                                         <div className="relative">
                                             <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral/30 text-xs" />
                                             <input type={showPin ? 'text' : 'password'} placeholder={c.pinPh} maxLength={4}
                                                 className={`w-full pl-9 pr-10 py-2.5 rounded-2xl border-2 bg-base-100 text-neutral text-sm outline-none focus:border-primary tracking-widest transition-all ${errors.dashboardPin ? 'border-error' : 'border-base-300'}`}
-                                                {...register('dashboardPin', { required: c.err.req, pattern: { value: /^\d{4}$/, message: c.err.pinLen } })} />
+                                                {...register('dashboardPin', {
+                                                    pattern: { value: /^\d{4}$/, message: c.err.pinLen }
+                                                })} />
                                             <button type="button" onClick={() => setShowPin(p => !p)}
                                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral/40 hover:text-neutral">
                                                 {showPin ? <FaEyeSlash /> : <FaEye />}

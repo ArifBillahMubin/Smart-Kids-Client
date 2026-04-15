@@ -1,25 +1,23 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSun, FaMoon, FaBars, FaTimes, FaChevronDown, FaSignOutAlt, FaUser, FaTachometerAlt } from 'react-icons/fa';
+import { FaSun, FaMoon, FaBars, FaTimes, FaChevronDown, FaSignOutAlt, FaUser, FaTachometerAlt, FaShieldAlt } from 'react-icons/fa';
+import { useQuery } from '@tanstack/react-query';
 import logo from '../../../assets/SmartKids_logo_final.png';
 import { useApp } from '../../../context/AppContext';
 import useAuth from '../../../hooks/useAuth';
+import { getUserByEmail } from '../../../utils';
 
 const navItems = {
     en: [
         { label: 'Home', to: '/' },
         { label: 'Courses', to: '/courses' },
         { label: 'My Class', to: '/my-class' },
-        { label: 'About', to: '/about' },
-        { label: 'Contact', to: '/contact' },
     ],
     bn: [
         { label: 'হোম', to: '/' },
         { label: 'কোর্স', to: '/courses' },
         { label: 'আমার ক্লাস', to: '/my-class' },
-        { label: 'আমাদের', to: '/about' },
-        { label: 'যোগাযোগ', to: '/contact' },
     ],
 };
 
@@ -31,6 +29,19 @@ const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [dropOpen, setDropOpen] = useState(false);
     const links = navItems[lang];
+
+    const { data: dbUser } = useQuery({
+        queryKey: ['user', user?.email],
+        queryFn: () => getUserByEmail(user.email),
+        enabled: !!user?.email,
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const isAdmin = dbUser?.role === 'admin';
+    const dashboardPath = isAdmin ? '/admin' : '/dashboard';
+    const dashboardLabel = isAdmin
+        ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+        : (lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard');
 
     const handleLogout = async () => {
         await logOut();
@@ -140,12 +151,14 @@ const Navbar = () => {
                                         </div>
                                         {/* Menu items */}
                                         <div className="p-1.5 flex flex-col gap-0.5">
-                                            <NavLink to="/dashboard" onClick={() => setDropOpen(false)}
+                                            <NavLink to={dashboardPath} onClick={() => setDropOpen(false)}
                                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-neutral/70 hover:bg-primary/8 hover:text-primary transition-colors">
-                                                <FaTachometerAlt className="text-primary text-xs" />
-                                                {lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}
+                                                {isAdmin
+                                                    ? <FaShieldAlt className="text-error text-xs" />
+                                                    : <FaTachometerAlt className="text-primary text-xs" />}
+                                                {dashboardLabel}
                                             </NavLink>
-                                            <NavLink to="/profile" onClick={() => setDropOpen(false)}
+                                            <NavLink to="/dashboard/profile" onClick={() => setDropOpen(false)}
                                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-neutral/70 hover:bg-primary/8 hover:text-primary transition-colors">
                                                 <FaUser className="text-primary text-xs" />
                                                 {lang === 'bn' ? 'প্রোফাইল' : 'Profile'}

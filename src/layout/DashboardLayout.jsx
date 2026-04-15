@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaHome, FaChartLine, FaBook, FaFileAlt, FaUser,
     FaUsers, FaCog, FaBars, FaTimes, FaSignOutAlt,
-    FaGraduationCap, FaTachometerAlt, FaBell, FaShieldAlt
+    FaGraduationCap, FaTachometerAlt, FaBell, FaShieldAlt, FaStar
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import logo from '../assets/SmartKids_logo_final.png';
@@ -12,9 +12,10 @@ import useAuth from '../hooks/useAuth';
 import { useApp } from '../context/AppContext';
 
 const guardianNav = [
-    { label: 'Overview',       labelBn: 'সারসংক্ষেপ',     to: '/dashboard',          icon: <FaTachometerAlt /> },
+    { label: 'Overview',       labelBn: 'সারসংক্ষেপ',     to: '/dashboard',                icon: <FaTachometerAlt /> },
     { label: 'Child Progress', labelBn: 'সন্তানের অগ্রগতি', to: '/dashboard/child-progress', icon: <FaChartLine /> },
     { label: 'My Courses',     labelBn: 'আমার কোর্স',      to: '/dashboard/my-courses',     icon: <FaBook /> },
+    { label: 'My Class',       labelBn: 'আমার ক্লাস',      to: '/my-class',                 icon: <FaGraduationCap /> },
     { label: 'Reports',        labelBn: 'রিপোর্ট',          to: '/dashboard/reports',        icon: <FaFileAlt /> },
     { label: 'Profile',        labelBn: 'প্রোফাইল',         to: '/dashboard/profile',        icon: <FaUser /> },
 ];
@@ -23,6 +24,7 @@ const adminNav = [
     { label: 'Overview',       labelBn: 'সারসংক্ষেপ',    to: '/admin',              icon: <FaTachometerAlt /> },
     { label: 'Manage Users',   labelBn: 'ব্যবহারকারী',    to: '/admin/users',        icon: <FaUsers /> },
     { label: 'Manage Courses', labelBn: 'কোর্স ব্যবস্থাপনা', to: '/admin/courses',   icon: <FaGraduationCap /> },
+    { label: 'Reviews',        labelBn: 'রিভিউ',           to: '/admin/reviews',      icon: <FaStar /> },
     { label: 'Reports',        labelBn: 'রিপোর্ট',         to: '/admin/reports',      icon: <FaFileAlt /> },
 ];
 

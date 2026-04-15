@@ -45,7 +45,7 @@ const StatCard = ({ stat, inView, index }) => (
     <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: false }}
         transition={{ duration: 0.5, delay: index * 0.1 }}
         whileHover={{ scale: 1.06, y: -6 }}
         className="flex flex-col items-center text-center gap-4 bg-base-100 border border-base-300 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300"
@@ -68,15 +68,16 @@ const Stats = () => {
     const stats = statsData[lang];
 
     useEffect(() => {
-        const observer = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold: 0.3 });
+        setInView(false);
+        const observer = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); else setInView(false); }, { threshold: 0.3 });
         if (ref.current) observer.observe(ref.current);
         return () => observer.disconnect();
-    }, []);
+    }, [lang]);
 
     return (
         <section ref={ref} className="py-16 px-6 bg-base-200">
             <div className="max-w-7xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-12">
+                <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.5 }} className="text-center mb-12">
                     <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">{h.badge}</span>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-neutral">{h.title} <span className="text-primary">{h.highlight}</span></h2>
                     <p className="text-neutral/50 text-sm mt-2 max-w-md mx-auto">{h.sub}</p>

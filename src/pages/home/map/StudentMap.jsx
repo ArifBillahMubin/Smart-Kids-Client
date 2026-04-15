@@ -66,13 +66,13 @@ const StudentMap = () => {
     return (
         <section className="py-16 px-6 bg-base-200">
             <div className="max-w-7xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-10">
+                <motion.div key={`map-header-${lang}`} initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.5 }} className="text-center mb-10">
                     <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase"><FaMapMarkerAlt /> {tx.badge}</span>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-neutral">{tx.title} <span className="text-primary">{tx.highlight}</span></h2>
                     <p className="text-neutral/50 text-sm mt-2">{tx.sub}</p>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="relative max-w-md mx-auto mb-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.5, delay: 0.1 }} className="relative max-w-md mx-auto mb-6">
                     <div className="flex items-center bg-base-100 border border-base-300 rounded-2xl px-4 py-3 shadow-sm gap-3">
                         <FaSearch className="text-primary shrink-0" />
                         <input type="text" value={search} onChange={handleSearch} placeholder={tx.placeholder} className="flex-1 outline-none text-sm text-neutral bg-transparent" />
@@ -93,7 +93,7 @@ const StudentMap = () => {
                     )}
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }} className="rounded-3xl overflow-hidden shadow-xl border border-base-300" style={{ height: '480px' }}>
+                <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: false }} transition={{ duration: 0.6, delay: 0.2 }} className="rounded-3xl overflow-hidden shadow-xl border border-base-300" style={{ height: '480px' }}>
                     <MapContainer center={[23.685, 90.3563]} zoom={7} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         {flyTo && <FlyTo coords={flyTo} />}

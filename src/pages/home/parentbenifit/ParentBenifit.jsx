@@ -76,10 +76,11 @@ const ParentBenifit = () => {
                 </motion.div>
 
                 <motion.div
+                    key={lang}
                     variants={container}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true }}
+                    viewport={{ once: false }}
                     className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5"
                 >
                     {c.items.map((b, i) => (

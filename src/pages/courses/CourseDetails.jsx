@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router';
-import { FaStar, FaUsers, FaBook, FaClock, FaCheckCircle, FaPlay, FaArrowLeft, FaGraduationCap, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaStar, FaUsers, FaBook, FaClock, FaCheckCircle, FaPlay, FaArrowLeft, FaGraduationCap, FaChevronDown, FaChevronUp, FaQuoteLeft } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
-import { getCourseById, getEnrollments } from '../../utils';
+import { getCourseById, getEnrollments, getCourseReviews } from '../../utils';
 import useAuth from '../../hooks/useAuth';
 import EnrollModal from '../../components/modals/EnrollModal';
 
@@ -20,6 +20,12 @@ const CourseDetails = () => {
     const { data: course, isLoading } = useQuery({
         queryKey: ['course', id],
         queryFn: () => getCourseById(id),
+    });
+
+    const { data: reviews = [] } = useQuery({
+        queryKey: ['courseReviews', id],
+        queryFn: () => getCourseReviews(id),
+        enabled: !!id,
     });
 
     if (isLoading) return (
@@ -84,7 +90,7 @@ const CourseDetails = () => {
                 <div className="lg:col-span-2 flex flex-col gap-8">
 
                     {/* What you'll learn */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
                         className="bg-base-100 rounded-3xl border border-base-300 p-6">
                         <h2 className="text-xl font-bold text-neutral mb-5">
                             {lang === 'bn' ? 'আপনি যা শিখবেন' : "What You'll Learn"}
@@ -102,7 +108,7 @@ const CourseDetails = () => {
                     </motion.div>
 
                     {/* Curriculum */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
                         className="bg-base-100 rounded-3xl border border-base-300 p-6">
                         <h2 className="text-xl font-bold text-neutral mb-5">
                             {lang === 'bn' ? 'পাঠ্যক্রম' : 'Course Curriculum'}
@@ -140,7 +146,7 @@ const CourseDetails = () => {
                     </motion.div>
 
                     {/* Requirements */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
                         className="bg-base-100 rounded-3xl border border-base-300 p-6">
                         <h2 className="text-xl font-bold text-neutral mb-4">
                             {lang === 'bn' ? 'প্রয়োজনীয়তা' : 'Requirements'}
@@ -155,7 +161,7 @@ const CourseDetails = () => {
                     </motion.div>
 
                     {/* Instructor */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
                         className="bg-base-100 rounded-3xl border border-base-300 p-6">
                         <h2 className="text-xl font-bold text-neutral mb-5">
                             {lang === 'bn' ? 'শিক্ষক' : 'Instructor'}
@@ -175,6 +181,70 @@ const CourseDetails = () => {
                             </div>
                         </div>
                     </motion.div>
+
+                    {/* Reviews */}
+                    {reviews.length > 0 && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
+                            className="bg-base-100 rounded-3xl border border-base-300 p-6">
+                            <h2 className="text-xl font-bold text-neutral mb-5">
+                                {lang === 'bn' ? 'শিক্ষার্থীদের রিভিউ' : 'Student Reviews'}
+                            </h2>
+                            {/* Avg rating summary */}
+                            <div className="flex items-center gap-4 mb-5 pb-5 border-b border-base-300">
+                                <div className="text-center">
+                                    <p className="text-4xl font-bold text-warning">
+                                        {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
+                                    </p>
+                                    <div className="flex gap-0.5 justify-center mt-1">
+                                        {[1,2,3,4,5].map(s => (
+                                            <FaStar key={s} className={`text-xs ${s <= Math.round(reviews.reduce((a, r) => a + r.rating, 0) / reviews.length) ? 'text-warning' : 'text-base-300'}`} />
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-neutral/40 mt-1">{reviews.length} {lang === 'bn' ? 'রিভিউ' : 'reviews'}</p>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-1">
+                                    {[5,4,3,2,1].map(star => {
+                                        const count = reviews.filter(r => r.rating === star).length;
+                                        const pct = (count / reviews.length) * 100;
+                                        return (
+                                            <div key={star} className="flex items-center gap-2 text-xs">
+                                                <span className="text-neutral/50 w-3">{star}</span>
+                                                <FaStar className="text-warning text-xs shrink-0" />
+                                                <div className="flex-1 h-1.5 bg-base-300 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-warning rounded-full" style={{ width: `${pct}%` }} />
+                                                </div>
+                                                <span className="text-neutral/40 w-4 text-right">{count}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            {/* Review cards */}
+                            <div className="flex flex-col gap-4">
+                                {reviews.slice(0, 5).map((r, i) => (
+                                    <motion.div key={r._id || i}
+                                        initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: false }} transition={{ delay: i * 0.06 }}
+                                        className="flex gap-4 p-4 rounded-2xl bg-base-200">
+                                        <div className="w-10 h-10 rounded-full bg-primary/20 text-primary font-bold text-sm flex items-center justify-center shrink-0">
+                                            {r.userName?.[0] || '?'}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between flex-wrap gap-1">
+                                                <p className="font-semibold text-neutral text-sm">{r.userName}</p>
+                                                <div className="flex gap-0.5">
+                                                    {[1,2,3,4,5].map(s => (
+                                                        <FaStar key={s} className={`text-xs ${s <= r.rating ? 'text-warning' : 'text-base-300'}`} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <p className="text-neutral/60 text-sm mt-1 leading-relaxed">{r.comment}</p>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* Enroll card — mobile/tablet */}

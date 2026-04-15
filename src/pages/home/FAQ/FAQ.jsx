@@ -41,7 +41,7 @@ const FAQ = () => {
     return (
         <section className="py-16 px-6 bg-base-100">
             <div className="max-w-4xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-12">
+                <motion.div key={`faq-header-${lang}`} initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.5 }} className="text-center mb-12">
                     <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">
                         <FaQuestionCircle /> {c.badge}
                     </span>
@@ -50,7 +50,7 @@ const FAQ = () => {
                 </motion.div>
                 <div className="flex flex-col gap-3">
                     {c.items.map((faq, i) => (
-                        <motion.div key={`${lang}-${i}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.07 }}>
+                        <motion.div key={`${lang}-${i}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.4, delay: i * 0.07 }}>
                             <div className="collapse collapse-arrow bg-base-200 rounded-2xl border-2 border-base-300 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200">
                                 <input type="radio" name="faq-accordion" defaultChecked={i === 0} />
                                 <div className="collapse-title font-semibold text-neutral text-sm md:text-base pr-10">{faq.q}</div>
