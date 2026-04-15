@@ -4,7 +4,7 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-import { getEnrollments, getQuizResults, getLessonProgress, getLessons } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const ScoreBar = ({ score, total }) => {
     const pct = total ? Math.round((score / total) * 100) : 0;
@@ -26,10 +26,11 @@ const ScoreBar = ({ score, total }) => {
 const Reports = () => {
     const { lang } = useApp();
     const { user } = useAuth();
+    const axiosSecure = useAxiosSecure();
 
     const { data: enrollments = [], isLoading: eLoading } = useQuery({
         queryKey: ['enrollments', user?.email],
-        queryFn: () => getEnrollments(user.email),
+        queryFn: () => axiosSecure.get(`/enrollments/${user.email}`).then(r => r.data),
         enabled: !!user?.email,
     });
 
@@ -37,7 +38,7 @@ const Reports = () => {
         queryKey: ['allQuizResults', user?.email],
         queryFn: async () => {
             const results = await Promise.all(
-                enrollments.map(e => getQuizResults(user.email, e.courseId))
+                enrollments.map(e => axiosSecure.get(`/quiz-results/${user.email}/${e.courseId}`).then(r => r.data))
             );
             return results.flat();
         },
@@ -48,19 +49,18 @@ const Reports = () => {
         queryKey: ['allProgress', user?.email],
         queryFn: async () => {
             const results = await Promise.all(
-                enrollments.map(e => getLessonProgress(user.email, e.courseId))
+                enrollments.map(e => axiosSecure.get(`/lesson-progress/${user.email}/${e.courseId}`).then(r => r.data))
             );
             return results.flat();
         },
         enabled: !!user?.email && enrollments.length > 0,
     });
 
-    // Fetch all lessons for all enrolled courses
     const { data: allLessons = [], isLoading: lLoading } = useQuery({
         queryKey: ['allLessons', enrollments.map(e => e.courseId).join(',')],
         queryFn: async () => {
             const results = await Promise.all(
-                enrollments.map(e => getLessons(e.courseId))
+                enrollments.map(e => axiosSecure.get(`/lessons/${e.courseId}`).then(r => r.data))
             );
             return results.flat();
         },

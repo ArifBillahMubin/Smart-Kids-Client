@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-import { getAdminStats, getAdminUsers, getAdminAnalytics } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const container = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
 const card = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -13,20 +13,21 @@ const card = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, trans
 const AdminOverview = () => {
     const { lang } = useApp();
     const { user } = useAuth();
+    const axiosSecure = useAxiosSecure();
 
     const { data: stats, isLoading: sLoading } = useQuery({
         queryKey: ['adminStats'],
-        queryFn: getAdminStats,
+        queryFn: () => axiosSecure.get('/admin/stats').then(r => r.data),
     });
 
     const { data: users = [], isLoading: uLoading } = useQuery({
         queryKey: ['adminUsers'],
-        queryFn: getAdminUsers,
+        queryFn: () => axiosSecure.get('/admin/users').then(r => r.data),
     });
 
     const { data: analytics, isLoading: aLoading } = useQuery({
         queryKey: ['adminAnalytics'],
-        queryFn: getAdminAnalytics,
+        queryFn: () => axiosSecure.get('/admin/analytics').then(r => r.data),
     });
 
     const isLoading = sLoading || uLoading || aLoading;

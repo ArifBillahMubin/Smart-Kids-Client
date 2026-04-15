@@ -4,6 +4,7 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
+import useRole from '../hooks/useRole';
 import { getUserByEmail } from '../utils';
 import PinModal from './PinModal';
 import { useApp } from '../context/AppContext';
@@ -14,6 +15,7 @@ const AdminRoute = ({ children }) => {
     const { user, loading } = useAuth();
     const { lang } = useApp();
     const location = useLocation();
+    const [role, isRoleLoading] = useRole();
     const [pinVerified, setPinVerified] = useState(
         () => sessionStorage.getItem(PIN_SESSION_KEY) === 'true'
     );
@@ -25,14 +27,14 @@ const AdminRoute = ({ children }) => {
         staleTime: 5 * 60 * 1000,
     });
 
-    if (loading || isLoading) return (
+    if (loading || isRoleLoading || isLoading) return (
         <div className="min-h-screen flex items-center justify-center bg-base-200">
             <TbFidgetSpinner className="animate-spin text-primary text-4xl" />
         </div>
     );
 
     if (!user) return <Navigate to="/login" state={location.pathname} replace />;
-    if (dbUser?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+    if (role !== 'admin') return <Navigate to="/dashboard" replace />;
 
     const hasPin = !!dbUser?.dashboardPin;
 

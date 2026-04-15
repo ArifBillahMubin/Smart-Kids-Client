@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-import { getEnrollments, getLessonProgress, getQuizResults, resetCourseProgress, getLessons } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 import ReviewModal from '../../../../components/modals/ReviewModal';
 
 const COLORS = ['bg-primary', 'bg-success', 'bg-accent', 'bg-secondary', 'bg-warning'];
@@ -34,18 +34,19 @@ const ChildProgress = () => {
     const { lang } = useApp();
     const { user } = useAuth();
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const [reviewCourse, setReviewCourse] = useState(null);
 
     const { data: enrollments = [], isLoading: eLoading } = useQuery({
         queryKey: ['enrollments', user?.email],
-        queryFn: () => getEnrollments(user.email),
+        queryFn: () => axiosSecure.get(`/enrollments/${user.email}`).then(r => r.data),
         enabled: !!user?.email,
     });
 
     const { data: allProgress = [], isLoading: pLoading } = useQuery({
         queryKey: ['allProgress', user?.email],
         queryFn: async () => {
-            const results = await Promise.all(enrollments.map(e => getLessonProgress(user.email, e.courseId)));
+            const results = await Promise.all(enrollments.map(e => axiosSecure.get(`/lesson-progress/${user.email}/${e.courseId}`).then(r => r.data)));
             return results.flat();
         },
         enabled: !!user?.email && enrollments.length > 0,
@@ -54,7 +55,7 @@ const ChildProgress = () => {
     const { data: allQuizResults = [], isLoading: qLoading } = useQuery({
         queryKey: ['allQuizResults', user?.email],
         queryFn: async () => {
-            const results = await Promise.all(enrollments.map(e => getQuizResults(user.email, e.courseId)));
+            const results = await Promise.all(enrollments.map(e => axiosSecure.get(`/quiz-results/${user.email}/${e.courseId}`).then(r => r.data)));
             return results.flat();
         },
         enabled: !!user?.email && enrollments.length > 0,
@@ -63,14 +64,14 @@ const ChildProgress = () => {
     const { data: allLessons = [], isLoading: lLoading } = useQuery({
         queryKey: ['allLessons', enrollments.map(e => e.courseId).join(',')],
         queryFn: async () => {
-            const results = await Promise.all(enrollments.map(e => getLessons(e.courseId)));
+            const results = await Promise.all(enrollments.map(e => axiosSecure.get(`/lessons/${e.courseId}`).then(r => r.data)));
             return results.flat();
         },
         enabled: enrollments.length > 0,
     });
 
     const resetMutation = useMutation({
-        mutationFn: ({ courseId }) => resetCourseProgress(user.email, courseId),
+        mutationFn: ({ courseId }) => axiosSecure.delete(`/lesson-progress/${user.email}/${courseId}`),
         onSuccess: (_, { courseTitle }) => {
             queryClient.invalidateQueries({ queryKey: ['allProgress', user?.email] });
             queryClient.invalidateQueries({ queryKey: ['allQuizResults', user?.email] });

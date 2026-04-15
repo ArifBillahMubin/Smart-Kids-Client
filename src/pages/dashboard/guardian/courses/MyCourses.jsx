@@ -5,16 +5,17 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-import { getEnrollments } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const MyCourses = () => {
     const { lang, activeClassCourseId, setActiveClassCourseId } = useApp();
     const { user } = useAuth();
     const navigate = useNavigate();
+    const axiosSecure = useAxiosSecure();
 
     const { data: enrollments = [], isLoading } = useQuery({
         queryKey: ['enrollments', user?.email],
-        queryFn: () => getEnrollments(user.email),
+        queryFn: () => axiosSecure.get(`/enrollments/${user.email}`).then(r => r.data),
         enabled: !!user?.email,
     });
 

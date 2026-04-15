@@ -3,14 +3,15 @@ import { FaUsers, FaBook, FaChartBar, FaTrophy } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../../../context/AppContext';
-import { getAdminStats, getAdminAnalytics, getCourses } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const AdminReports = () => {
     const { lang } = useApp();
+    const axiosSecure = useAxiosSecure();
 
-    const { data: stats, isLoading: sLoading } = useQuery({ queryKey: ['adminStats'], queryFn: getAdminStats });
-    const { data: analytics, isLoading: aLoading } = useQuery({ queryKey: ['adminAnalytics'], queryFn: getAdminAnalytics });
-    const { data: courses = [], isLoading: cLoading } = useQuery({ queryKey: ['courses'], queryFn: getCourses });
+    const { data: stats, isLoading: sLoading } = useQuery({ queryKey: ['adminStats'], queryFn: () => axiosSecure.get('/admin/stats').then(r => r.data) });
+    const { data: analytics, isLoading: aLoading } = useQuery({ queryKey: ['adminAnalytics'], queryFn: () => axiosSecure.get('/admin/analytics').then(r => r.data) });
+    const { data: courses = [], isLoading: cLoading } = useQuery({ queryKey: ['courses'], queryFn: () => axiosSecure.get('/course').then(r => r.data) });
 
     const isLoading = sLoading || aLoading || cLoading;
 

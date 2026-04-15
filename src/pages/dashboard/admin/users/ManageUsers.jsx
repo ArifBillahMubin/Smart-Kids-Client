@@ -6,21 +6,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useApp } from '../../../../context/AppContext';
-import { getAdminUsers, updateUserRole, deleteUser } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const ManageUsers = () => {
     const { lang } = useApp();
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
 
     const { data: users = [], isLoading } = useQuery({
         queryKey: ['adminUsers'],
-        queryFn: getAdminUsers,
+        queryFn: () => axiosSecure.get('/admin/users').then(r => r.data),
     });
 
     const roleMutation = useMutation({
-        mutationFn: ({ email, role }) => updateUserRole(email, role),
+        mutationFn: ({ email, role }) => axiosSecure.patch(`/admin/users/${email}/role`, { role }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
             toast.success('Role updated!');
@@ -29,7 +30,7 @@ const ManageUsers = () => {
     });
 
     const deleteMutation = useMutation({
-        mutationFn: deleteUser,
+        mutationFn: (email) => axiosSecure.delete(`/admin/users/${email}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
             Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false });

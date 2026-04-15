@@ -4,10 +4,12 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FaTimes, FaYoutube, FaCloudUploadAlt, FaSpinner, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import { addLesson, updateLesson, uploadVideoToCloudinary } from '../../utils';
+import { uploadVideoToCloudinary } from '../../utils';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 
 const LessonModal = ({ isOpen, onClose, courseId, lesson, weekOptions }) => {
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const isEdit = !!lesson;
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploading, setUploading] = useState(false);
@@ -26,11 +28,11 @@ const LessonModal = ({ isOpen, onClose, courseId, lesson, weekOptions }) => {
     const videoType = useWatch({ control, name: 'videoType' });
 
     const addMutation = useMutation({
-        mutationFn: addLesson,
+        mutationFn: (data) => axiosSecure.post('/lessons', data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons', courseId] }); toast.success('Lesson added!'); onClose(); }
     });
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => updateLesson(id, data),
+        mutationFn: ({ id, data }) => axiosSecure.put(`/lessons/${id}`, data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons', courseId] }); toast.success('Lesson updated!'); onClose(); }
     });
 

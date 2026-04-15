@@ -7,7 +7,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-import { getUserByEmail, updateUserProfile_DB } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
+import { getUserByEmail } from '../../../../utils';
 
 const classes = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'];
 
@@ -15,6 +16,7 @@ const Profile = () => {
     const { lang } = useApp();
     const { user } = useAuth();
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const [editing, setEditing] = useState(false);
     const [showPin, setShowPin] = useState(false);
 
@@ -38,7 +40,7 @@ const Profile = () => {
     };
 
     const updateMutation = useMutation({
-        mutationFn: (data) => updateUserProfile_DB(user.email, data),
+        mutationFn: (data) => axiosSecure.put(`/users/${user.email}`, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['user', user?.email] });
             toast.success(lang === 'bn' ? 'প্রোফাইল আপডেট হয়েছে!' : 'Profile updated!');

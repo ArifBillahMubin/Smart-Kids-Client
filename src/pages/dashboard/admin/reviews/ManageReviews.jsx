@@ -6,20 +6,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../../../context/AppContext';
-import { getAdminReviews, deleteReview } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const ManageReviews = () => {
     const { lang } = useApp();
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const [search, setSearch] = useState('');
 
     const { data: reviews = [], isLoading } = useQuery({
         queryKey: ['adminReviews'],
-        queryFn: getAdminReviews,
+        queryFn: () => axiosSecure.get('/admin/reviews').then(r => r.data),
     });
 
     const deleteMutation = useMutation({
-        mutationFn: deleteReview,
+        mutationFn: (id) => axiosSecure.delete(`/admin/reviews/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['adminReviews'] });
             Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false });

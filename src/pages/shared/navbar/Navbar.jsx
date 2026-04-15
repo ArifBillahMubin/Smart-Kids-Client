@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSun, FaMoon, FaBars, FaTimes, FaChevronDown, FaSignOutAlt, FaUser, FaTachometerAlt, FaShieldAlt } from 'react-icons/fa';
-import { useQuery } from '@tanstack/react-query';
 import logo from '../../../assets/SmartKids_logo_final.png';
 import { useApp } from '../../../context/AppContext';
 import useAuth from '../../../hooks/useAuth';
-import { getUserByEmail } from '../../../utils';
+import useRole from '../../../hooks/useRole';
 
 const navItems = {
     en: [
@@ -29,15 +28,9 @@ const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [dropOpen, setDropOpen] = useState(false);
     const links = navItems[lang];
+    const [role] = useRole();
 
-    const { data: dbUser } = useQuery({
-        queryKey: ['user', user?.email],
-        queryFn: () => getUserByEmail(user.email),
-        enabled: !!user?.email,
-        staleTime: 5 * 60 * 1000,
-    });
-
-    const isAdmin = dbUser?.role === 'admin';
+    const isAdmin = role === 'admin';
     const dashboardPath = isAdmin ? '/admin' : '/dashboard';
     const dashboardLabel = isAdmin
         ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')

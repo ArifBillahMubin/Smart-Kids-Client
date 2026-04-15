@@ -5,27 +5,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaPlay, FaQuestionCircle, FaArrowLeft, FaYoutube, FaSpinner, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { getLessons, deleteLesson, getQuizByLesson, deleteQuiz, getCourseById } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 import LessonModal from '../../../../components/modals/LessonModal';
 import QuizModal from '../../../../components/modals/QuizModal';
 
 // ── Lesson Card ──
-const LessonCard = ({ lesson, courseId, onEdit, onAddQuiz }) => {
+const LessonCard = ({ lesson, courseId, onEdit, onAddQuiz, axiosSecure }) => {
     const queryClient = useQueryClient();
     const [showQuiz, setShowQuiz] = useState(false);
 
     const { data: quiz } = useQuery({
         queryKey: ['quiz', lesson._id],
-        queryFn: () => getQuizByLesson(lesson._id),
+        queryFn: () => axiosSecure.get(`/quizzes/${lesson._id}`).then(r => r.data),
     });
 
     const deleteLessonMutation = useMutation({
-        mutationFn: deleteLesson,
+        mutationFn: (id) => axiosSecure.delete(`/lessons/${id}`),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons', courseId] }); Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false }); }
     });
 
     const deleteQuizMutation = useMutation({
-        mutationFn: deleteQuiz,
+        mutationFn: (id) => axiosSecure.delete(`/quizzes/${id}`),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['quiz', lesson._id] }); toast.success('Quiz deleted!'); }
     });
 
@@ -107,6 +107,7 @@ const LessonCard = ({ lesson, courseId, onEdit, onAddQuiz }) => {
 // ── Main Page ──
 const CourseManager = () => {
     const { id: courseId } = useParams();
+    const axiosSecure = useAxiosSecure();
     const [lessonModal, setLessonModal] = useState(false);
     const [quizModal, setQuizModal] = useState(false);
     const [editingLesson, setEditingLesson] = useState(null);
@@ -114,12 +115,12 @@ const CourseManager = () => {
 
     const { data: course } = useQuery({
         queryKey: ['course', courseId],
-        queryFn: () => getCourseById(courseId),
+        queryFn: () => axiosSecure.get(`/course/${courseId}`).then(r => r.data),
     });
 
     const { data: lessons = [], isLoading } = useQuery({
         queryKey: ['lessons', courseId],
-        queryFn: () => getLessons(courseId),
+        queryFn: () => axiosSecure.get(`/lessons/${courseId}`).then(r => r.data),
     });
 
     // Group lessons by week
@@ -182,7 +183,7 @@ const CourseManager = () => {
                     </div>
                     {wLessons.sort((a, b) => (a.order || 0) - (b.order || 0)).map(lesson => (
                         <LessonCard key={lesson._id} lesson={lesson} courseId={courseId}
-                            onEdit={openEditLesson} onAddQuiz={openQuizModal} />
+                            onEdit={openEditLesson} onAddQuiz={openQuizModal} axiosSecure={axiosSecure} />
                     ))}
                 </div>
             ))}

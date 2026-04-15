@@ -4,10 +4,11 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FaPlus, FaTrash, FaTimes, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import { addQuiz, updateQuiz } from '../../utils';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 
 const QuizModal = ({ isOpen, onClose, courseId, lessonId, quiz }) => {
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const isEdit = !!quiz;
 
     const { register, handleSubmit, control, formState: { errors } } = useForm({
@@ -23,11 +24,11 @@ const QuizModal = ({ isOpen, onClose, courseId, lessonId, quiz }) => {
     const { fields, append, remove } = useFieldArray({ control, name: 'questions' });
 
     const addMutation = useMutation({
-        mutationFn: addQuiz,
+        mutationFn: (data) => axiosSecure.post('/quizzes', data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['quiz', lessonId] }); toast.success('Quiz added!'); onClose(); }
     });
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => updateQuiz(id, data),
+        mutationFn: ({ id, data }) => axiosSecure.put(`/quizzes/${id}`, data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['quiz', lessonId] }); toast.success('Quiz updated!'); onClose(); }
     });
 

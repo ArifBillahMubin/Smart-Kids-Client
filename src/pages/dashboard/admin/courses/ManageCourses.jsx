@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaBook, FaUsers, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { addCourse, getCourses, updateCourse, deleteCourse } from '../../../../utils';
-
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 // ── Constants ──
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Bangla', 'Coding', 'Arts'];
 const CLASSES  = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 1-3', 'Class 2-5', 'Class 3-4', 'Class 4-5', 'Class 1-5'];
@@ -65,6 +64,7 @@ const parse = (data) => ({
 
 const ManageCourses = () => {
     const queryClient = useQueryClient();
+    const axiosSecure = useAxiosSecure();
     const [search, setSearch]       = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -74,14 +74,14 @@ const ManageCourses = () => {
     // ── GET all courses ──
     const { data: courses = [], isLoading } = useQuery({
         queryKey: ['courses'],
-        queryFn: getCourses,
+        queryFn: () => axiosSecure.get('/course').then(r => r.data),
     });
 
     // ── ADD course ──
     const addMutation = useMutation({
-        mutationFn: addCourse,
+        mutationFn: (data) => axiosSecure.post('/courses', data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['courses'] }); // refetch
+            queryClient.invalidateQueries({ queryKey: ['courses'] });
             toast.success('Course added!');
             setModalOpen(false);
         },
@@ -90,9 +90,9 @@ const ManageCourses = () => {
 
     // ── UPDATE course ──
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => updateCourse(id, data),
+        mutationFn: ({ id, data }) => axiosSecure.put(`/course/${id}`, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['courses'] }); // refetch
+            queryClient.invalidateQueries({ queryKey: ['courses'] });
             toast.success('Course updated!');
             setModalOpen(false);
         },
@@ -101,9 +101,9 @@ const ManageCourses = () => {
 
     // ── DELETE course ──
     const deleteMutation = useMutation({
-        mutationFn: deleteCourse,
+        mutationFn: (id) => axiosSecure.delete(`/course/${id}`),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['courses'] }); // refetch
+            queryClient.invalidateQueries({ queryKey: ['courses'] });
             Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false });
         },
         onError: (err) => toast.error(err?.response?.data?.message || 'Delete failed'),

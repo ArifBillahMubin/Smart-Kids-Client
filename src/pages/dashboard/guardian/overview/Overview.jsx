@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../../../context/AppContext';
 import useAuth from '../../../../hooks/useAuth';
-import { getEnrollments } from '../../../../utils';
+import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 
 const container = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
 const card = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -13,10 +13,11 @@ const card = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, trans
 const Overview = () => {
     const { lang } = useApp();
     const { user } = useAuth();
+    const axiosSecure = useAxiosSecure();
 
     const { data: enrollments = [], isLoading } = useQuery({
         queryKey: ['enrollments', user?.email],
-        queryFn: () => getEnrollments(user.email),
+        queryFn: () => axiosSecure.get(`/enrollments/${user.email}`).then(r => r.data),
         enabled: !!user?.email,
     });
 
