@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlay, FaQuestionCircle, FaChevronDown, FaChevronUp, FaCheckCircle, FaBook, FaLock } from 'react-icons/fa';
+import { FaPlay, FaQuestionCircle, FaChevronDown, FaChevronUp, FaCheckCircle, FaBook, FaLock, FaChevronRight, FaChevronLeft } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { Link, useParams } from 'react-router';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../context/AppContext';
 import useAuth from '../../hooks/useAuth';
-import {
-    getLessons, getQuizByLesson, getCourseById,
-    getLessonProgress, markLessonWatched, markLessonComplete,
-    getQuizResults, saveQuizResult
-} from '../../utils';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+import { getLessons, getQuizByLesson, getCourseById } from '../../utils';
 
 // ── Video Player ──
 const VideoPlayer = ({ url, type, onWatched }) => {
@@ -24,7 +21,6 @@ const VideoPlayer = ({ url, type, onWatched }) => {
             </button>
         </div>
     );
-
     if (type === 'youtube' || url.includes('youtube') || url.includes('youtu.be')) {
         const videoId = url.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1];
         if (videoId) return (
@@ -40,7 +36,6 @@ const VideoPlayer = ({ url, type, onWatched }) => {
             </div>
         );
     }
-
     return (
         <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg">
             <video src={url} controls className="w-full h-full bg-black" onEnded={onWatched} />
@@ -49,7 +44,7 @@ const VideoPlayer = ({ url, type, onWatched }) => {
 };
 
 // ── Quiz Section ──
-const QuizSection = ({ lessonId, courseId, lang, userEmail, quizResults, hasQuizCheck, onQuizPass, onNoQuiz }) => {
+const QuizSection = ({ lessonId, courseId, lang, userEmail, quizResults, hasQuizCheck, onQuizPass, onNoQuiz, onQuizSubmit, axiosSecure }) => {
     const queryClient = useQueryClient();
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
@@ -60,14 +55,14 @@ const QuizSection = ({ lessonId, courseId, lang, userEmail, quizResults, hasQuiz
     });
 
     const saveResultMutation = useMutation({
-        mutationFn: saveQuizResult,
+        mutationFn: (resultData) => axiosSecure.post('/quiz-results', resultData),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quizResults', userEmail, courseId] }),
     });
 
-    // No quiz — auto complete
     useEffect(() => {
         if (hasQuizCheck && !isLoading && !quiz) {
             onNoQuiz?.();
+            onQuizSubmit?.(true);
         }
     }, [quiz, isLoading, hasQuizCheck]);
 
@@ -78,28 +73,21 @@ const QuizSection = ({ lessonId, courseId, lang, userEmail, quizResults, hasQuiz
         </div>
     );
 
-    // Check previous best result
     const prevResult = quizResults?.find(r => r.lessonId === lessonId);
-
-    const score = submitted ? quiz.questions.filter((q, i) => Number(answers[i]) === q.correct).length : 0;
     const total = quiz.questions.length;
+    const score = submitted ? quiz.questions.filter((q, i) => Number(answers[i]) === q.correct).length : 0;
     const passed = submitted && score >= Math.ceil(total / 2);
 
     const handleSubmit = async () => {
         const s = quiz.questions.filter((q, i) => Number(answers[i]) === q.correct).length;
         const p = s >= Math.ceil(total / 2);
         setSubmitted(true);
-
-        // Save result to DB regardless of pass/fail
         await saveResultMutation.mutateAsync({
             userEmail, courseId, lessonId,
-            quizId: quiz._id,
-            score: s, total,
-            passed: p,
+            quizId: quiz._id, score: s, total, passed: p,
         });
-
-        // Always complete lesson after attempting quiz (pass or fail)
         onQuizPass?.();
+        onQuizSubmit?.(true);
     };
 
     return (
@@ -163,8 +151,8 @@ const QuizSection = ({ lessonId, courseId, lang, userEmail, quizResults, hasQuiz
                         </div>
                     )}
                     {!passed && (
-                        <div className="bg-error/10 rounded-2xl px-4 py-3 text-error text-sm font-semibold">
-                            {lang === 'bn' ? `আবার চেষ্টা করুন। পাস করতে ${Math.ceil(total / 2)}/${total} সঠিক লাগবে।` : `Try again. Need ${Math.ceil(total / 2)}/${total} correct to pass.`}
+                        <div className="bg-warning/10 rounded-2xl px-4 py-3 text-warning text-sm font-semibold">
+                            {lang === 'bn' ? `${score}/${total} সঠিক — পরের লেসনে যেতে পারবে।` : `${score}/${total} correct — you can still proceed.`}
                         </div>
                     )}
                     <button onClick={() => { setAnswers({}); setSubmitted(false); }}
@@ -182,23 +170,21 @@ const MyClass = () => {
     const { lang, activeClassCourseId, setActiveClassCourseId } = useApp();
     const { user } = useAuth();
     const { courseId: paramCourseId } = useParams();
+    const axiosSecure = useAxiosSecure();
     const queryClient = useQueryClient();
     const [activeLesson, setActiveLesson] = useState(null);
     const [showQuiz, setShowQuiz] = useState(false);
+    const [quizDone, setQuizDone] = useState(false); // tracks if quiz submitted for current lesson
 
-    // URL param takes priority, fallback to context
     const courseId = paramCourseId || activeClassCourseId;
+    const userEmail = user?.email;
 
-    // Sync param courseId into context if needed
     useEffect(() => {
         if (paramCourseId && paramCourseId !== activeClassCourseId) {
             setActiveClassCourseId(paramCourseId);
         }
-    }, [paramCourseId]);
+    }, [paramCourseId, activeClassCourseId, setActiveClassCourseId]);
 
-    const userEmail = user?.email;
-
-    // ── Fetch course, lessons, progress, quiz results ──
     const { data: course } = useQuery({
         queryKey: ['course', courseId],
         queryFn: () => getCourseById(courseId),
@@ -213,31 +199,26 @@ const MyClass = () => {
 
     const { data: progress = [] } = useQuery({
         queryKey: ['lessonProgress', userEmail, courseId],
-        queryFn: () => getLessonProgress(userEmail, courseId),
+        queryFn: () => axiosSecure.get(`/lesson-progress/${userEmail}/${courseId}`).then(r => r.data),
         enabled: !!userEmail && !!courseId,
     });
 
     const { data: quizResults = [] } = useQuery({
         queryKey: ['quizResults', userEmail, courseId],
-        queryFn: () => getQuizResults(userEmail, courseId),
+        queryFn: () => axiosSecure.get(`/quiz-results/${userEmail}/${courseId}`).then(r => r.data),
         enabled: !!userEmail && !!courseId,
     });
 
-    // ── Mutations ──
     const watchMutation = useMutation({
-        mutationFn: ({ lessonId }) => markLessonWatched(userEmail, courseId, lessonId),
+        mutationFn: ({ lessonId }) => axiosSecure.post('/lesson-progress/watch', { userEmail, courseId, lessonId }),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, courseId] }),
     });
 
     const completeMutation = useMutation({
-        mutationFn: ({ lessonId }) => markLessonComplete(userEmail, courseId, lessonId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, courseId] });
-            toast.success(lang === 'bn' ? 'লেসন সম্পন্ন! পরবর্তী লেসন আনলক হয়েছে 🎉' : 'Lesson complete! Next lesson unlocked 🎉');
-        },
+        mutationFn: ({ lessonId }) => axiosSecure.post('/lesson-progress/complete', { userEmail, courseId, lessonId }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessonProgress', userEmail, courseId] }),
     });
 
-    // ── Helpers ──
     const isWatched = (lessonId) => progress.some(p => p.lessonId === lessonId && p.watched);
     const isCompleted = (lessonId) => progress.some(p => p.lessonId === lessonId && p.completed);
     const completedCount = progress.filter(p => p.completed).length;
@@ -252,13 +233,23 @@ const MyClass = () => {
         return isCompleted(sortedLessons[idx - 1]._id);
     };
 
+    const currentLesson = activeLesson || sortedLessons[0];
+    const currentIndex = sortedLessons.findIndex(l => l._id === currentLesson?._id);
+    const prevLesson = sortedLessons[currentIndex - 1];
+    const nextLesson = sortedLessons[currentIndex + 1];
+
+    // reset quizDone when lesson changes
+    useEffect(() => {
+        setQuizDone(false);
+        setShowQuiz(false);
+    }, [currentLesson?._id]);
+
     const handleLessonClick = (lesson) => {
         if (!isUnlocked(lesson)) {
             toast.error(lang === 'bn' ? 'আগের লেসন সম্পন্ন করুন' : 'Complete the previous lesson first');
             return;
         }
         setActiveLesson(lesson);
-        setShowQuiz(false);
     };
 
     const handleWatched = (lessonId) => {
@@ -269,7 +260,11 @@ const MyClass = () => {
         if (!isCompleted(lessonId)) completeMutation.mutate({ lessonId });
     };
 
-    const currentLesson = activeLesson || sortedLessons[0];
+    const handleNext = () => {
+        if (!nextLesson) return;
+        handleComplete(currentLesson._id); // mark current as complete
+        setActiveLesson(nextLesson);
+    };
 
     const byWeek = sortedLessons.reduce((acc, l) => {
         const w = l.weekIndex || 1;
@@ -278,12 +273,16 @@ const MyClass = () => {
         return acc;
     }, {});
 
+    // can go next: video watched AND (no quiz OR quiz submitted)
+    const videoWatched = currentLesson ? isWatched(currentLesson._id) || isCompleted(currentLesson._id) : false;
+    const canNext = videoWatched && quizDone;
+
     if (!courseId) return (
         <div className="min-h-screen bg-base-200 flex items-center justify-center p-6">
             <div className="text-center max-w-sm">
                 <p className="text-6xl mb-4">📚</p>
                 <h2 className="text-2xl font-bold text-neutral mb-2">{lang === 'bn' ? 'কোনো ক্লাস সেট করা নেই' : 'No Class Set'}</h2>
-                <p className="text-neutral/50 text-sm mb-6">{lang === 'bn' ? 'অভিভাবক ড্যাশবোর্ড থেকে একটি কোর্স সক্রিয় করুন।' : 'Ask your guardian to activate a course from the dashboard.'}</p>
+                <p className="text-neutral/50 text-sm mb-6">{lang === 'bn' ? 'ড্যাশবোর্ড থেকে একটি কোর্স সক্রিয় করুন।' : 'Activate a course from the dashboard.'}</p>
                 <Link to="/courses" className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all">
                     <FaBook /> {lang === 'bn' ? 'কোর্স দেখুন' : 'Browse Courses'}
                 </Link>
@@ -343,44 +342,84 @@ const MyClass = () => {
                                 {currentLesson.content && <p className="text-neutral/70 text-sm mt-3 leading-relaxed">{currentLesson.content}</p>}
                             </div>
 
-                            {/* Video watched — show quiz */}
-                            {isWatched(currentLesson._id) && !isCompleted(currentLesson._id) && (
-                                <QuizSection
-                                    lessonId={currentLesson._id}
-                                    courseId={courseId}
-                                    lang={lang}
-                                    userEmail={userEmail}
-                                    quizResults={quizResults}
-                                    hasQuizCheck={true}
-                                    onQuizPass={() => handleComplete(currentLesson._id)}
-                                    onNoQuiz={() => handleComplete(currentLesson._id)}
-                                />
-                            )}
-
-                            {/* Completed — retake quiz */}
-                            {isCompleted(currentLesson._id) && (
-                                <>
-                                    <button onClick={() => setShowQuiz(p => !p)}
-                                        className="flex items-center justify-between w-full px-5 py-3.5 rounded-2xl bg-success/10 text-success font-bold hover:bg-success/20 transition-all">
-                                        <span className="flex items-center gap-2"><FaQuestionCircle /> {lang === 'bn' ? 'কুইজ পুনরায় দিন' : 'Retake Quiz'}</span>
-                                        {showQuiz ? <FaChevronUp /> : <FaChevronDown />}
-                                    </button>
-                                    <AnimatePresence>
-                                        {showQuiz && (
-                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                                                <QuizSection lessonId={currentLesson._id} courseId={courseId} lang={lang} userEmail={userEmail} quizResults={quizResults} />
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </>
-                            )}
-
                             {/* Not watched yet */}
-                            {!isWatched(currentLesson._id) && !isCompleted(currentLesson._id) && (
+                            {!videoWatched && (
                                 <div className="bg-warning/10 border border-warning/30 rounded-2xl px-5 py-3 text-warning text-sm font-semibold flex items-center gap-2">
                                     <FaPlay className="text-xs" />
                                     {lang === 'bn' ? 'আগে ভিডিও দেখুন বা "Mark as Watched" করুন।' : 'Watch the video or click "Mark as Watched" first.'}
                                 </div>
+                            )}
+
+                            {/* Quiz — show after watched, before completed */}
+                            {videoWatched && (
+                                <>
+                                    {!isCompleted(currentLesson._id) ? (
+                                        <QuizSection
+                                            lessonId={currentLesson._id}
+                                            courseId={courseId}
+                                            lang={lang}
+                                            userEmail={userEmail}
+                                            quizResults={quizResults}
+                                            hasQuizCheck={true}
+                                            onQuizPass={() => handleComplete(currentLesson._id)}
+                                            onNoQuiz={() => handleComplete(currentLesson._id)}
+                                            onQuizSubmit={(done) => setQuizDone(done)}
+                                            axiosSecure={axiosSecure}
+                                        />
+                                    ) : (
+                                        <>
+                                            <button onClick={() => setShowQuiz(p => !p)}
+                                                className="flex items-center justify-between w-full px-5 py-3.5 rounded-2xl bg-success/10 text-success font-bold hover:bg-success/20 transition-all">
+                                                <span className="flex items-center gap-2"><FaQuestionCircle /> {lang === 'bn' ? 'কুইজ পুনরায় দিন' : 'Retake Quiz'}</span>
+                                                {showQuiz ? <FaChevronUp /> : <FaChevronDown />}
+                                            </button>
+                                            <AnimatePresence>
+                                                {showQuiz && (
+                                                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                                                        <QuizSection lessonId={currentLesson._id} courseId={courseId} lang={lang} userEmail={userEmail} quizResults={quizResults} axiosSecure={axiosSecure} />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            {/* Prev / Next */}
+                            <div className="flex items-center gap-3 pt-2">
+                                <button
+                                    onClick={() => prevLesson && handleLessonClick(prevLesson)}
+                                    disabled={!prevLesson}
+                                    className="flex items-center gap-2 px-5 py-3 rounded-2xl border-2 border-base-300 text-neutral font-bold hover:bg-base-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                                    <FaChevronLeft className="text-xs" />
+                                    {lang === 'bn' ? 'আগের' : 'Prev'}
+                                </button>
+
+                                {nextLesson ? (
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!canNext}
+                                        title={!videoWatched ? (lang === 'bn' ? 'আগে ভিডিও দেখুন' : 'Watch video first') : !quizDone ? (lang === 'bn' ? 'আগে কুইজ দিন' : 'Complete quiz first') : ''}
+                                        className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                                        {lang === 'bn' ? 'পরের লেসন' : 'Next Lesson'}
+                                        <FaChevronRight className="text-xs" />
+                                    </button>
+                                ) : (
+                                    isCompleted(currentLesson._id) && (
+                                        <div className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-success/15 text-success font-bold">
+                                            <FaCheckCircle /> {lang === 'bn' ? 'কোর্স সম্পন্ন! 🎉' : 'Course Complete! 🎉'}
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            {/* hint */}
+                            {nextLesson && !canNext && (
+                                <p className="text-xs text-warning text-center -mt-2">
+                                    {!videoWatched
+                                        ? (lang === 'bn' ? '⚠️ আগে ভিডিও দেখুন' : '⚠️ Watch the video first')
+                                        : (lang === 'bn' ? '⚠️ পরের লেসনে যেতে কুইজ দিন' : '⚠️ Submit the quiz to proceed')}
+                                </p>
                             )}
                         </>
                     ) : (
@@ -405,10 +444,16 @@ const MyClass = () => {
                                 return (
                                     <button key={lesson._id}
                                         onClick={() => handleLessonClick(lesson)}
-                                        className={`flex items-center gap-3 p-3 rounded-2xl text-left transition-all ${isActive ? 'bg-primary text-white shadow-sm' : unlocked ? 'bg-base-100 border border-base-300 hover:border-primary/40' : 'bg-base-200 border border-base-300 opacity-60 cursor-not-allowed'}`}>
-                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs ${isActive ? 'bg-white/20' : done ? 'bg-success/20' : unlocked ? 'bg-primary/10 text-primary' : 'bg-base-300 text-neutral/30'}`}>
-                                            {done ? <FaCheckCircle className={isActive ? 'text-white' : 'text-success'} />
-                                                : unlocked ? <FaPlay className={`text-xs ${isActive ? 'text-white' : ''}`} />
+                                        className={`flex items-center gap-3 p-3 rounded-2xl text-left transition-all
+                                            ${isActive ? 'bg-primary text-white shadow-sm' : ''}
+                                            ${!isActive && unlocked ? 'bg-base-100 border border-base-300 hover:border-primary/40' : ''}
+                                            ${!unlocked ? 'bg-base-200 border border-base-300 opacity-60 cursor-not-allowed' : ''}`}>
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs
+                                            ${isActive ? 'bg-white/20' : done ? 'bg-success/20' : unlocked ? 'bg-primary/10 text-primary' : 'bg-base-300 text-neutral/30'}`}>
+                                            {done
+                                                ? <FaCheckCircle className={isActive ? 'text-white' : 'text-success'} />
+                                                : unlocked
+                                                    ? <FaPlay className={`text-xs ${isActive ? 'text-white' : ''}`} />
                                                     : <FaLock className="text-xs" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -418,8 +463,8 @@ const MyClass = () => {
                                             <p className={`text-xs ${isActive ? 'text-white/70' : 'text-neutral/40'}`}>
                                                 {done ? (lang === 'bn' ? '✅ সম্পন্ন' : '✅ Done')
                                                     : watched ? (lang === 'bn' ? '📝 কুইজ বাকি' : '📝 Quiz pending')
-                                                        : unlocked ? (lesson.duration || '—')
-                                                            : (lang === 'bn' ? '🔒 লক' : '🔒 Locked')}
+                                                    : unlocked ? (lesson.duration || '—')
+                                                    : (lang === 'bn' ? '🔒 লক' : '🔒 Locked')}
                                             </p>
                                         </div>
                                     </button>

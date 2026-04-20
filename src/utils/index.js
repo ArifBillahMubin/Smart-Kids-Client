@@ -15,56 +15,56 @@ export const imageUpload = async (imageData) => {
 
 // ── User APIs (public) ──
 export const saveUser = async (userData) => {
-    const { data } = await axios.post(`${API}users`, userData);
+    const { data } = await axios.post(`${API}/users`, userData);
     return data;
 };
 
 export const getUserByEmail = async (email) => {
-    const { data } = await axios.get(`${API}users/${email}`);
+    const { data } = await axios.get(`${API}/users/${email}`);
     return data;
 };
 
 // ── Course APIs (public) ──
 export const getCourses = async () => {
-    const { data } = await axios.get(`${API}course`);
+    const { data } = await axios.get(`${API}/course`);
     return data;
 };
 
 export const getCourseById = async (id) => {
-    const { data } = await axios.get(`${API}course/${id}`);
+    const { data } = await axios.get(`${API}/course/${id}`);
     return data;
 };
 
 // ── Enrollment & Payment APIs ──
 export const enrollFree = async (enrollmentData) => {
-    const { data } = await axios.post(`${API}enrollments`, enrollmentData);
+    const { data } = await axios.post(`${API}/enrollments`, enrollmentData);
     return data;
 };
 
 export const createCheckoutSession = async (info) => {
-    const { data } = await axios.post(`${API}create-checkout-session`, info);
+    const { data } = await axios.post(`${API}/create-checkout-session`, info);
     return data;
 };
 
 export const verifyPayment = async (sessionId) => {
-    const { data } = await axios.post(`${API}payment-success`, { sessionId });
+    const { data } = await axios.post(`${API}/payment-success`, { sessionId });
     return data;
 };
 
 export const getEnrollments = async (email) => {
-    const { data } = await axios.get(`${API}enrollments/${email}`);
+    const { data } = await axios.get(`${API}/enrollments/${email}`);
     return data;
 };
 
 // ── Lesson APIs (public read) ──
 export const getLessons = async (courseId) => {
-    const { data } = await axios.get(`${API}lessons/${courseId}`);
+    const { data } = await axios.get(`${API}/lessons/${courseId}`);
     return data;
 };
 
 // ── Quiz APIs (public read) ──
 export const getQuizByLesson = async (lessonId) => {
-    const { data } = await axios.get(`${API}quizzes/${lessonId}`);
+    const { data } = await axios.get(`${API}/quizzes/${lessonId}`);
     return data;
 };
 
@@ -99,38 +99,38 @@ export const uploadVideoToCloudinary = async (file, onProgress) => {
 
 // ── Lesson Progress APIs ──
 export const markLessonWatched = async (userEmail, courseId, lessonId) => {
-    const { data } = await axios.post(`${API}lesson-progress/watch`, { userEmail, courseId, lessonId });
+    const { data } = await axios.post(`${API}/lesson-progress/watch`, { userEmail, courseId, lessonId });
     return data;
 };
 
 export const markLessonComplete = async (userEmail, courseId, lessonId) => {
-    const { data } = await axios.post(`${API}lesson-progress/complete`, { userEmail, courseId, lessonId });
+    const { data } = await axios.post(`${API}/lesson-progress/complete`, { userEmail, courseId, lessonId });
     return data;
 };
 
 export const getLessonProgress = async (userEmail, courseId) => {
-    const { data } = await axios.get(`${API}lesson-progress/${userEmail}/${courseId}`);
+    const { data } = await axios.get(`${API}/lesson-progress/${userEmail}/${courseId}`);
     return data;
 };
 
 // ── Quiz Result APIs ──
 export const saveQuizResult = async (resultData) => {
-    const { data } = await axios.post(`${API}quiz-results`, resultData);
+    const { data } = await axios.post(`${API}/quiz-results`, resultData);
     return data;
 };
 
 export const getQuizResults = async (userEmail, courseId) => {
-    const { data } = await axios.get(`${API}quiz-results/${userEmail}/${courseId}`);
+    const { data } = await axios.get(`${API}/quiz-results/${userEmail}/${courseId}`);
     return data;
 };
 
 // ── Review APIs ──
 export const saveReview = async (reviewData) => {
-    const { data } = await axios.post(`${API}reviews`, reviewData);
+    const { data } = await axios.post(`${API}/reviews`, reviewData);
     return data;
 };
 
 export const getCourseReviews = async (courseId) => {
-    const { data } = await axios.get(`${API}reviews/${courseId}`);
+    const { data } = await axios.get(`${API}/reviews/${courseId}`);
     return data;
 };
