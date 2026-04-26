@@ -60,7 +60,7 @@ const PaymentSuccess = () => {
                         </motion.div>
                         <div>
                             <h1 className="text-2xl font-bold text-neutral">
-                                {lang === 'bn' ? 'পেমেন্ট সফল! 🎉' : 'Payment Successful! 🎉'}
+                                {lang === 'bn' ? 'পেমেন্ট সফল!' : 'Payment Successful!'}
                             </h1>
                             <p className="text-neutral/50 text-sm mt-2">
                                 {lang === 'bn'

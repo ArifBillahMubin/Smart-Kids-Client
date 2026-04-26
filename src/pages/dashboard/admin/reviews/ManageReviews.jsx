@@ -62,7 +62,7 @@ const ManageReviews = () => {
                 <div>
                     <h2 className="text-2xl font-bold text-neutral">{lang === 'bn' ? 'রিভিউ ব্যবস্থাপনা' : 'Manage Reviews'}</h2>
                     <p className="text-neutral/50 text-sm mt-0.5">
-                        {reviews.length} {lang === 'bn' ? 'টি রিভিউ' : 'reviews'} · {lang === 'bn' ? 'গড় রেটিং:' : 'Avg rating:'} {avgRating} ⭐
+                        {reviews.length} {lang === 'bn' ? 'টি রিভিউ' : 'reviews'} · {lang === 'bn' ? 'গড় রেটিং:' : 'Avg rating:'} {avgRating} <FaStar className="inline text-warning text-xs" />
                     </p>
                 </div>
                 <div className="relative">
@@ -107,7 +107,7 @@ const ManageReviews = () => {
             {/* Reviews grid */}
             {filtered.length === 0 ? (
                 <div className="bg-base-100 rounded-3xl border border-base-300 p-16 text-center">
-                    <p className="text-5xl mb-4">⭐</p>
+                    <FaStar className="text-warning/30 text-5xl mx-auto mb-4" />
                     <p className="text-neutral/50">{lang === 'bn' ? 'কোনো রিভিউ পাওয়া যায়নি' : 'No reviews found'}</p>
                 </div>
             ) : (

@@ -2,14 +2,14 @@ import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { motion } from 'framer-motion';
-import { FaQuoteLeft, FaStar } from 'react-icons/fa';
+import { FaQuoteLeft, FaStar, FaComments } from 'react-icons/fa';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { useApp } from '../../../context/AppContext';
 
 const content = {
     en: {
-        badge: '💬 Real Stories', title: 'Success', highlight: 'Stories',
+        badge: 'Real Stories', title: 'Success', highlight: 'Stories',
         sub: 'Real stories from parents across Bangladesh',
         stories: [
             { name: 'Fatema Begum', role: 'Mother of Rafi, Class 3', location: 'Dhaka', avatar: 'FB', color: 'bg-primary', rating: 5, text: "SmartKids transformed my son's life. In just 3 months his math score went from 45 to 85. He now sits down to study on his own — that never happened before!" },
@@ -21,7 +21,7 @@ const content = {
         ],
     },
     bn: {
-        badge: '💬 সত্যিকারের গল্প', title: 'সাফল্যের', highlight: 'গল্প',
+        badge: 'সত্যিকারের গল্প', title: 'সাফল্যের', highlight: 'গল্প',
         sub: 'সারা বাংলাদেশের অভিভাবকদের সত্যিকারের অভিজ্ঞতা',
         stories: [
             { name: 'ফাতেমা বেগম', role: 'রাফির মা, ক্লাস ৩', location: 'ঢাকা', avatar: 'FB', color: 'bg-primary', rating: 5, text: 'SmartKids পরিবর্তন এনেছে আমার ছেলের জীবনে। মাত্র ৩ মাসে গণিতে তার নম্বর ৪৫ থেকে ৮৫ হয়েছে। প্রতিদিন নিজে থেকেই পড়তে বসে — এটা আগে কখনো হতো না!' },
@@ -42,7 +42,7 @@ const SuccsessStory = () => {
         <section className="py-20 px-6 bg-base-200 overflow-hidden">
             <div className="max-w-7xl mx-auto">
                 <motion.div key={`story-header-${lang}`} initial={{ opacity: 0, y: -30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.6 }} className="text-center mb-12">
-                    <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">{c.badge}</span>
+                    <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase"><FaComments className="text-xs" /> {c.badge}</span>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-neutral">{c.title} <span className="text-primary">{c.highlight}</span></h2>
                     <motion.div initial={{ width: 0 }} whileInView={{ width: 80 }} viewport={{ once: false }} transition={{ duration: 0.8, delay: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mt-4" />
                     <p className="text-neutral/50 text-sm mt-3">{c.sub}</p>

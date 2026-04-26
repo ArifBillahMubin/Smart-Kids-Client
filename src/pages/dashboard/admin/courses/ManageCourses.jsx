@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaBook, FaUsers, FaSpinner } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaBook, FaUsers, FaSpinner, FaCog } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import useAxiosSecure from '../../../../hooks/useAxiosSecure';
@@ -217,7 +217,7 @@ const ManageCourses = () => {
                                 <div className="flex gap-2">
                                     <Link to={`/admin/courses/${c._id}/manage`}
                                         className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all">
-                                        🎬 Manage
+                                        <FaCog className="text-xs" /> Manage
                                     </Link>
                                     <button onClick={() => openEdit(c)}
                                         className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-secondary/10 text-secondary text-xs font-bold hover:bg-secondary hover:text-white transition-all">

@@ -5,7 +5,7 @@ import { useApp } from '../../../context/AppContext';
 
 const content = {
     en: {
-        badge: '❓ FAQ', title: 'Frequently Asked', highlight: 'Questions',
+        badge: 'FAQ', title: 'Frequently Asked', highlight: 'Questions',
         sub: 'Find answers to the most common questions from parents.',
         items: [
             { q: 'What age group is SmartKids for?', a: 'SmartKids is designed for students in Classes 1-5, i.e., children aged 6-11. All our content is aligned with the national curriculum.' },
@@ -19,7 +19,7 @@ const content = {
         ],
     },
     bn: {
-        badge: '❓ সচরাচর জিজ্ঞাসা', title: 'সচরাচর জিজ্ঞাসা', highlight: 'প্রশ্নসমূহ',
+        badge: 'সচরাচর জিজ্ঞাসা', title: 'সচরাচর জিজ্ঞাসা', highlight: 'প্রশ্নসমূহ',
         sub: 'অভিভাবকদের সবচেয়ে বেশি জিজ্ঞাসিত প্রশ্নের উত্তর এখানে পাবেন।',
         items: [
             { q: 'SmartKids কোন বয়সের বাচ্চাদের জন্য?', a: 'SmartKids মূলত Class 1 থেকে Class 5 এর শিক্ষার্থীদের জন্য তৈরি, অর্থাৎ ৬ থেকে ১১ বছর বয়সী বাচ্চাদের জন্য। আমাদের সব কন্টেন্ট জাতীয় পাঠ্যক্রম অনুযায়ী তৈরি।' },

@@ -27,7 +27,7 @@ const FeaturedCourses = () => {
                     className="flex items-end justify-between mb-10 flex-wrap gap-4">
                     <div>
                         <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">
-                            📚 {lang === 'bn' ? 'জনপ্রিয় কোর্স' : 'Popular Courses'}
+                            <FaBook className="text-xs" /> {lang === 'bn' ? 'জনপ্রিয় কোর্স' : 'Popular Courses'}
                         </span>
                         <h2 className="text-3xl md:text-4xl text-neutral">
                             {lang === 'bn' ? 'বৈশিষ্ট্যযুক্ত' : 'Featured'} <span className="text-primary">{lang === 'bn' ? 'কোর্সসমূহ' : 'Courses'}</span>
@@ -46,7 +46,7 @@ const FeaturedCourses = () => {
 
                 {!isLoading && featured.length === 0 && (
                     <div className="text-center py-16 text-neutral/40">
-                        <p className="text-4xl mb-3">📚</p>
+                        <FaBook className="text-4xl mx-auto mb-3 text-neutral/20" />
                         <p>{lang === 'bn' ? 'কোনো কোর্স পাওয়া যায়নি' : 'No courses available yet'}</p>
                     </div>
                 )}

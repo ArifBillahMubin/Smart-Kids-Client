@@ -187,7 +187,7 @@ const Reports = () => {
 
             {enrollments.length === 0 && (
                 <div className="bg-base-100 rounded-3xl border border-base-300 p-16 text-center">
-                    <p className="text-5xl mb-4">📊</p>
+                    <FaChartBar className="text-neutral/20 text-5xl mx-auto mb-4" />
                     <p className="text-neutral/50">{lang === 'bn' ? 'এখনো কোনো কোর্সে ভর্তি হননি' : 'No courses enrolled yet'}</p>
                 </div>
             )}

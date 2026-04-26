@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaSearch, FaTrash, FaShieldAlt, FaUser } from 'react-icons/fa';
+import { FaSearch, FaTrash, FaShieldAlt, FaUser, FaUsers } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -160,7 +160,7 @@ const ManageUsers = () => {
                     </table>
                     {filtered.length === 0 && (
                         <div className="text-center py-16 text-neutral/40">
-                            <p className="text-4xl mb-3">👥</p>
+                            <FaUsers className="text-4xl mx-auto mb-3 text-neutral/20" />
                             <p>{lang === 'bn' ? 'কোনো ব্যবহারকারী পাওয়া যায়নি' : 'No users found'}</p>
                         </div>
                     )}

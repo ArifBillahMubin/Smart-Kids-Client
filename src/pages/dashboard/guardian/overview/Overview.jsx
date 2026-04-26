@@ -45,8 +45,8 @@ const Overview = () => {
                 <div>
                     <h2 className="text-2xl font-bold text-neutral">
                         {lang === 'bn'
-                            ? `স্বাগতম, ${user?.displayName?.split(' ')[0] || 'অভিভাবক'}! 👋`
-                            : `Welcome back, ${user?.displayName?.split(' ')[0] || 'Guardian'}! 👋`}
+                            ? `স্বাগতম, ${user?.displayName?.split(' ')[0] || 'অভিভাবক'}!`
+                            : `Welcome back, ${user?.displayName?.split(' ')[0] || 'Guardian'}!`}
                     </h2>
                     <p className="text-neutral/50 text-sm mt-1">
                         {lang === 'bn' ? 'আপনার সন্তানের শেখার সারসংক্ষেপ।' : "Here's your child's learning summary."}
@@ -86,7 +86,7 @@ const Overview = () => {
 
                 {enrollments.length === 0 ? (
                     <div className="text-center py-10">
-                        <p className="text-4xl mb-3">📚</p>
+                        <FaBook className="text-primary/20 text-5xl mx-auto mb-3" />
                         <p className="text-neutral/50 text-sm mb-4">
                             {lang === 'bn' ? 'এখনো কোনো কোর্সে ভর্তি হননি' : 'No courses enrolled yet'}
                         </p>
@@ -99,8 +99,8 @@ const Overview = () => {
                     <div className="flex flex-col gap-3">
                         {enrollments.slice(0, 5).map((e, i) => (
                             <div key={e._id || i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-base-200 transition-colors">
-                                <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-lg shrink-0">
-                                    📖
+                                <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
+                                    <FaBook className="text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-neutral text-sm truncate">{e.courseTitle}</p>

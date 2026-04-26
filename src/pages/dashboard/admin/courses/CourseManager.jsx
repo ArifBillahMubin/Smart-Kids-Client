@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaEdit, FaTrash, FaPlay, FaQuestionCircle, FaArrowLeft, FaYoutube, FaSpinner, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaPlay, FaQuestionCircle, FaArrowLeft, FaYoutube, FaSpinner, FaChevronDown, FaChevronUp, FaVideo } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import useAxiosSecure from '../../../../hooks/useAxiosSecure';
@@ -164,7 +164,7 @@ const CourseManager = () => {
 
             {!isLoading && lessons.length === 0 && (
                 <div className="bg-base-100 rounded-3xl border border-base-300 p-16 text-center">
-                    <p className="text-5xl mb-4">🎬</p>
+                    <FaVideo className="text-neutral/20 text-5xl mx-auto mb-4" />
                     <h3 className="font-bold text-neutral text-lg mb-2">No lessons yet</h3>
                     <p className="text-neutral/50 text-sm mb-6">Add your first lesson to get started</p>
                     <button onClick={openAddLesson} className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all">

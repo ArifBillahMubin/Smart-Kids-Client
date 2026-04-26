@@ -39,8 +39,8 @@ const createIcon = (color) => L.divIcon({
 const FlyTo = ({ coords }) => { const map = useMap(); if (coords) map.flyTo(coords, 10, { duration: 1.2 }); return null; };
 
 const t = {
-    en: { badge: '📍 We\'re Across Bangladesh', title: 'SmartKids Students', highlight: 'Everywhere', sub: 'From Teknaf to Tetulia — kids are learning with SmartKids all over Bangladesh.', placeholder: 'Search city or division...', students: 'students' },
-    bn: { badge: '📍 সারা বাংলাদেশে আমরা', title: 'SmartKids শিক্ষার্থী', highlight: 'সর্বত্র', sub: 'টেকনাফ থেকে তেঁতুলিয়া — সারা বাংলাদেশে বাচ্চারা SmartKids-এ শিখছে।', placeholder: 'শহর বা বিভাগ খুঁজুন...', students: 'শিক্ষার্থী' },
+    en: { badge: "We're Across Bangladesh", title: 'SmartKids Students', highlight: 'Everywhere', sub: 'From Teknaf to Tetulia — kids are learning with SmartKids all over Bangladesh.', placeholder: 'Search city or division...', students: 'students' },
+    bn: { badge: 'সারা বাংলাদেশে আমরা', title: 'SmartKids শিক্ষার্থী', highlight: 'সর্বত্র', sub: 'টেকনাফ থেকে তেঁতুলিয়া — সারা বাংলাদেশে বাচ্চারা SmartKids-এ শিখছে।', placeholder: 'শহর বা বিভাগ খুঁজুন...', students: 'শিক্ষার্থী' },
 };
 
 const StudentMap = () => {

@@ -67,7 +67,7 @@ const MyCourses = () => {
 
             {enrollments.length === 0 ? (
                 <div className="bg-base-100 rounded-3xl border border-base-300 p-16 text-center">
-                    <p className="text-5xl mb-4">📚</p>
+                    <FaBook className="text-primary/20 text-5xl mx-auto mb-4" />
                     <h3 className="font-bold text-neutral text-lg mb-2">
                         {lang === 'bn' ? 'এখনো কোনো কোর্সে ভর্তি হননি' : 'No courses enrolled yet'}
                     </h3>
@@ -96,15 +96,15 @@ const MyCourses = () => {
                                 {/* Header */}
                                 <div className={`p-5 flex items-center justify-between ${isActive ? 'bg-success/5' : 'bg-gradient-to-r from-primary/10 to-secondary/5'}`}>
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${isActive ? 'bg-success/20' : 'bg-primary/20'}`}>
-                                            📖
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isActive ? 'bg-success/20' : 'bg-primary/20'}`}>
+                                            <FaBook className={isActive ? 'text-success' : 'text-primary'} />
                                         </div>
                                         <div>
                                             <p className="font-bold text-neutral text-sm leading-tight">{e.courseTitle}</p>
                                             <p className="text-neutral/50 text-xs mt-0.5">
                                                 {e.payment
-                                                    ? (lang === 'bn' ? '💳 পেইড' : '💳 Paid')
-                                                    : (lang === 'bn' ? '🆓 বিনামূল্যে' : '🆓 Free')}
+                                                    ? (lang === 'bn' ? 'পেইড' : 'Paid')
+                                                    : (lang === 'bn' ? 'বিনামূল্যে' : 'Free')}
                                             </p>
                                         </div>
                                     </div>

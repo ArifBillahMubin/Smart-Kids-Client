@@ -53,7 +53,7 @@ const AdminOverview = () => {
             <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
                 className="bg-gradient-to-r from-error/10 via-base-100 to-primary/10 rounded-3xl p-6 border border-base-300">
                 <h2 className="text-2xl font-bold text-neutral">
-                    {lang === 'bn' ? `অ্যাডমিন ড্যাশবোর্ড 🛡️` : `Admin Dashboard 🛡️`}
+                    {lang === 'bn' ? 'অ্যাডমিন ড্যাশবোর্ড' : 'Admin Dashboard'}
                 </h2>
                 <p className="text-neutral/50 text-sm mt-1">
                     {lang === 'bn' ? 'সম্পূর্ণ প্ল্যাটফর্মের সারসংক্ষেপ' : 'Complete platform overview'}

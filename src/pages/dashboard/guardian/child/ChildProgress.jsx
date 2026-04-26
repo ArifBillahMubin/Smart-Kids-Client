@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCheckCircle, FaRedo } from 'react-icons/fa';
+import { FaCheckCircle, FaRedo, FaTrophy, FaBook, FaBrain, FaFire, FaStar, FaGraduationCap } from 'react-icons/fa';
 import { TbFidgetSpinner } from 'react-icons/tb';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -13,13 +13,13 @@ import ReviewModal from '../../../../components/modals/ReviewModal';
 const COLORS = ['bg-primary', 'bg-success', 'bg-accent', 'bg-secondary', 'bg-warning'];
 
 const badges = [
-    { icon: '🏆', labelEn: 'First Enrollment', labelBn: 'প্রথম ভর্তি', check: (e) => e.length >= 1 },
-    { icon: '📚', labelEn: '3 Courses', labelBn: '৩টি কোর্স', check: (e) => e.length >= 3 },
-    { icon: '✅', labelEn: 'First Lesson Done', labelBn: 'প্রথম লেসন শেষ', check: (_, p) => p.some(x => x.completed) },
-    { icon: '🔥', labelEn: '5 Lessons Done', labelBn: '৫টি লেসন শেষ', check: (_, p) => p.filter(x => x.completed).length >= 5 },
-    { icon: '🧠', labelEn: 'First Quiz', labelBn: 'প্রথম কুইজ', check: (_, __, q) => q.length >= 1 },
-    { icon: '⭐', labelEn: 'Perfect Score', labelBn: 'পারফেক্ট স্কোর', check: (_, __, q) => q.some(x => x.score === x.total) },
-    { icon: '🎓', labelEn: 'Course Complete', labelBn: 'কোর্স সম্পন্ন', check: (_, p, __, lessons) => {
+    { icon: <FaTrophy className="text-warning" />, labelEn: 'First Enrollment', labelBn: 'প্রথম ভর্তি', check: (e) => e.length >= 1 },
+    { icon: <FaBook className="text-primary" />, labelEn: '3 Courses', labelBn: '৩টি কোর্স', check: (e) => e.length >= 3 },
+    { icon: <FaCheckCircle className="text-success" />, labelEn: 'First Lesson Done', labelBn: 'প্রথম লেসন শেষ', check: (_, p) => p.some(x => x.completed) },
+    { icon: <FaFire className="text-error" />, labelEn: '5 Lessons Done', labelBn: '৫টি লেসন শেষ', check: (_, p) => p.filter(x => x.completed).length >= 5 },
+    { icon: <FaBrain className="text-accent" />, labelEn: 'First Quiz', labelBn: 'প্রথম কুইজ', check: (_, __, q) => q.length >= 1 },
+    { icon: <FaStar className="text-warning" />, labelEn: 'Perfect Score', labelBn: 'পারফেক্ট স্কোর', check: (_, __, q) => q.some(x => x.score === x.total) },
+    { icon: <FaGraduationCap className="text-secondary" />, labelEn: 'Course Complete', labelBn: 'কোর্স সম্পন্ন', check: (_, p, __, lessons) => {
         if (!lessons.length) return false;
         const courseIds = [...new Set(lessons.map(l => l.courseId))];
         return courseIds.some(cid => {
@@ -118,13 +118,13 @@ const ChildProgress = () => {
             {/* Summary */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {[
-                    { icon: '📚', labelEn: 'Courses', labelBn: 'কোর্স', value: enrollments.length, color: 'text-primary' },
-                    { icon: '✅', labelEn: 'Lessons Done', labelBn: 'লেসন শেষ', value: completedLessons, color: 'text-success' },
-                    { icon: '🧠', labelEn: 'Avg Quiz Score', labelBn: 'গড় কুইজ স্কোর', value: `${avgScore}%`, color: 'text-accent' },
+                    { icon: <FaBook className="text-2xl text-primary" />, labelEn: 'Courses', labelBn: 'কোর্স', value: enrollments.length, color: 'text-primary' },
+                    { icon: <FaCheckCircle className="text-2xl text-success" />, labelEn: 'Lessons Done', labelBn: 'লেসন শেষ', value: completedLessons, color: 'text-success' },
+                    { icon: <FaBrain className="text-2xl text-accent" />, labelEn: 'Avg Quiz Score', labelBn: 'গড় কুইজ স্কোর', value: `${avgScore}%`, color: 'text-accent' },
                 ].map((s, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                         className="bg-base-100 rounded-3xl p-5 border border-base-300 flex flex-col gap-2">
-                        <span className="text-3xl">{s.icon}</span>
+                        {s.icon}
                         <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
                         <p className="text-neutral/50 text-xs">{lang === 'bn' ? s.labelBn : s.labelEn}</p>
                     </motion.div>
@@ -169,7 +169,7 @@ const ChildProgress = () => {
                                             {isComplete && (
                                                 <button onClick={() => setReviewCourse(e)}
                                                     className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all font-bold">
-                                                    ⭐ {lang === 'bn' ? 'রিভিউ' : 'Review'}
+                                                    <FaStar className="text-xs" /> {lang === 'bn' ? 'রিভিউ' : 'Review'}
                                                 </button>
                                             )}
                                         </div>
@@ -196,7 +196,7 @@ const ChildProgress = () => {
                             <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: i * 0.08 }}
                                 className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 ${earned ? 'border-primary/30 bg-primary/5' : 'border-base-300 opacity-40'}`}>
-                                <span className="text-3xl">{b.icon}</span>
+                                <div className="text-2xl">{b.icon}</div>
                                 <span className="text-xs font-semibold text-neutral text-center leading-tight">
                                     {lang === 'bn' ? b.labelBn : b.labelEn}
                                 </span>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSpring, animated } from 'react-spring';
-import { FaUserGraduate, FaBookOpen, FaChalkboardTeacher, FaStar, FaSmile } from 'react-icons/fa';
+import { FaUserGraduate, FaBookOpen, FaChalkboardTeacher, FaStar, FaSmile, FaTrophy } from 'react-icons/fa';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { useApp } from '../../../context/AppContext';
 
@@ -23,8 +23,8 @@ const statsData = {
 };
 
 const headings = {
-    en: { badge: '🏆 Our Numbers', title: 'Trusted by Thousands of', highlight: 'Families', sub: "SmartKids is growing every day — here's what we've achieved together." },
-    bn: { badge: '🏆 আমাদের সংখ্যা', title: 'হাজারো পরিবারের', highlight: 'বিশ্বাস', sub: 'SmartKids প্রতিদিন বাড়ছে — একসাথে আমরা যা অর্জন করেছি।' },
+    en: { badge: 'Our Numbers', title: 'Trusted by Thousands of', highlight: 'Families', sub: "SmartKids is growing every day — here's what we've achieved together." },
+    bn: { badge: 'আমাদের সংখ্যা', title: 'হাজারো পরিবারের', highlight: 'বিশ্বাস', sub: 'SmartKids প্রতিদিন বাড়ছে — একসাথে আমরা যা অর্জন করেছি।' },
 };
 
 const SpringCounter = ({ value, decimal, suffix, color, inView }) => {
@@ -78,7 +78,7 @@ const Stats = () => {
         <section ref={ref} className="py-16 px-6 bg-base-200">
             <div className="max-w-7xl mx-auto">
                 <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.5 }} className="text-center mb-12">
-                    <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">{h.badge}</span>
+                    <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase"><FaTrophy className="text-xs" /> {h.badge}</span>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-neutral">{h.title} <span className="text-primary">{h.highlight}</span></h2>
                     <p className="text-neutral/50 text-sm mt-2 max-w-md mx-auto">{h.sub}</p>
                 </motion.div>

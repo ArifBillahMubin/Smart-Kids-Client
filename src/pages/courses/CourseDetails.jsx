@@ -37,7 +37,7 @@ const CourseDetails = () => {
     if (!course) return (
         <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
-                <p className="text-5xl mb-4">😕</p>
+                <FaBook className="text-neutral/20 text-5xl mx-auto mb-4" />
                 <p className="text-neutral font-bold text-xl">{lang === 'bn' ? 'কোর্স পাওয়া যায়নি' : 'Course not found'}</p>
                 <Link to="/courses" className="mt-4 inline-block text-primary hover:underline">← {lang === 'bn' ? 'কোর্সে ফিরুন' : 'Back to Courses'}</Link>
             </div>
@@ -312,7 +312,7 @@ const EnrollButton = ({ course, lang, enrolled, onOpen }) => {
             onClick={isEnrolled ? undefined : onOpen}
             className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all ${isEnrolled ? 'bg-success text-white cursor-default' : 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg'}`}>
             {isEnrolled
-                ? (lang === 'bn' ? '✅ ভর্তি হয়েছেন!' : '✅ Enrolled!')
+                ? (lang === 'bn' ? 'ভর্তি হয়েছেন!' : 'Enrolled!')
                 : (lang === 'bn' ? 'এখনই ভর্তি হন' : 'Enroll Now')}
         </motion.button>
         <div className="flex flex-col gap-2 pt-2 border-t border-base-300">

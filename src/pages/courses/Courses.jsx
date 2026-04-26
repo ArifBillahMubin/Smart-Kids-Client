@@ -146,8 +146,8 @@ const Courses = () => {
                 )}
 
                 {!isLoading && filtered.length === 0 && (
-                    <div className="text-center py-20 text-neutral/40">
-                        <p className="text-5xl mb-4">🔍</p>
+                    <div className="text-center py-16 text-neutral/40">
+                        <FaSearch className="text-5xl mx-auto mb-4 text-neutral/20" />
                         <p className="font-semibold">{lang === 'bn' ? 'কোনো কোর্স পাওয়া যায়নি' : 'No courses found'}</p>
                     </div>
                 )}

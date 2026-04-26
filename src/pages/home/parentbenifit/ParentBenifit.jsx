@@ -15,7 +15,7 @@ const icons = [
 
 const content = {
     en: {
-        badge: '⭐ For Parents', title: 'Parent', highlight: 'Benefits',
+        badge: 'For Parents', title: 'Parent', highlight: 'Benefits',
         sub: "Everything you need to stay connected with your child's learning journey.",
         items: [
             { title: 'Track Growth',   desc: 'Detailed weekly performance reports' },
@@ -29,7 +29,7 @@ const content = {
         ],
     },
     bn: {
-        badge: '⭐ অভিভাবকদের জন্য', title: 'অভিভাবক', highlight: 'সুবিধাসমূহ',
+        badge: 'অভিভাবকদের জন্য', title: 'অভিভাবক', highlight: 'সুবিধাসমূহ',
         sub: 'আপনার সন্তানের শেখার যাত্রায় সংযুক্ত থাকতে যা যা দরকার।',
         items: [
             { title: 'অগ্রগতি ট্র্যাক',   desc: 'বিস্তারিত সাপ্তাহিক পারফরম্যান্স রিপোর্ট' },
@@ -67,7 +67,7 @@ const ParentBenifit = () => {
             <div className="max-w-7xl mx-auto">
                 <motion.div initial={{ opacity: 0, y: -20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="mb-12">
                     <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">
-                        {c.badge}
+                        <FaStar className="text-xs" /> {c.badge}
                     </span>
                     <h2 className="text-3xl md:text-4xl text-neutral">
                         {c.title} <span className="text-primary">{c.highlight}</span>
