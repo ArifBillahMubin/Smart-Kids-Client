@@ -6,17 +6,18 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../../context/AppContext';
-import { saveReview } from '../../utils';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 
 const ReviewModal = ({ isOpen, onClose, course, userEmail, userName }) => {
     const { lang } = useApp();
+    const axiosSecure = useAxiosSecure();
     const queryClient = useQueryClient();
     const [rating, setRating] = useState(5);
     const [hovered, setHovered] = useState(0);
     const [comment, setComment] = useState('');
 
     const mutation = useMutation({
-        mutationFn: saveReview,
+        mutationFn: (reviewData) => axiosSecure.post('/reviews', reviewData),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reviews', course?._id] });
             toast.success(lang === 'bn' ? 'রিভিউ সংরক্ষিত হয়েছে! ধন্যবাদ 🎉' : 'Review saved! Thank you 🎉');

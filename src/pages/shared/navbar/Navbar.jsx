@@ -6,6 +6,8 @@ import logo from '../../../assets/SmartKids_logo_final.png';
 import { useApp } from '../../../context/AppContext';
 import useAuth from '../../../hooks/useAuth';
 import useRole from '../../../hooks/useRole';
+import { useQuery } from '@tanstack/react-query';
+import { getUserByEmail } from '../../../utils';
 
 const navItems = {
     en: [
@@ -29,6 +31,16 @@ const Navbar = () => {
     const [dropOpen, setDropOpen] = useState(false);
     const links = navItems[lang];
     const [role] = useRole();
+
+    const { data: dbUser } = useQuery({
+        queryKey: ['user', user?.email],
+        queryFn: () => getUserByEmail(user.email),
+        enabled: !!user?.email,
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const photoURL = dbUser?.photoURL || user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=4F9CF9&color=fff`;
+    const displayName = dbUser?.name || user?.displayName || 'User';
 
     const isAdmin = role === 'admin';
     const dashboardPath = isAdmin ? '/admin' : '/dashboard';
@@ -111,12 +123,12 @@ const Navbar = () => {
                                 className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-base-300 hover:border-primary/40 transition-all"
                             >
                                 <img
-                                    src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=4F9CF9&color=fff`}
+                                    src={photoURL}
                                     className="w-8 h-8 rounded-full object-cover"
-                                    alt={user.displayName}
+                                    alt={displayName}
                                 />
                                 <span className="hidden sm:block text-sm font-semibold text-neutral max-w-[80px] truncate">
-                                    {user.displayName?.split(' ')[0]}
+                                    {displayName?.split(' ')[0]}
                                 </span>
                                 <FaChevronDown className={`text-neutral/40 text-xs transition-transform ${dropOpen ? 'rotate-180' : ''}`} />
                             </motion.button>
@@ -133,12 +145,12 @@ const Navbar = () => {
                                         {/* User info */}
                                         <div className="px-4 py-3 border-b border-base-300 flex items-center gap-3">
                                             <img
-                                                src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=4F9CF9&color=fff`}
+                                                src={photoURL}
                                                 className="w-10 h-10 rounded-full object-cover"
                                                 alt=""
                                             />
                                             <div className="overflow-hidden">
-                                                <p className="font-bold text-neutral text-sm truncate">{user.displayName}</p>
+                                                <p className="font-bold text-neutral text-sm truncate">{displayName}</p>
                                                 <p className="text-neutral/40 text-xs truncate">{user.email}</p>
                                             </div>
                                         </div>

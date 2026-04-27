@@ -8,7 +8,8 @@ import { toast } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
 import useAuth from '../../hooks/useAuth';
-import { enrollFree, createCheckoutSession, getEnrollments } from '../../utils';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+import { createCheckoutSession } from '../../utils';
 import confetti from 'canvas-confetti';
 
 const t = {
@@ -45,14 +46,14 @@ const t = {
 const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnrolled }) => {
     const { lang } = useApp();
     const { user } = useAuth();
+    const axiosSecure = useAxiosSecure();
     const navigate = useNavigate();
     const c = t[lang];
     const [loading, setLoading] = useState(false);
 
-    // Check if already enrolled from DB
     const { data: enrollments = [] } = useQuery({
         queryKey: ['enrollments', user?.email],
-        queryFn: () => getEnrollments(user.email),
+        queryFn: () => axiosSecure.get(`/enrollments/${user.email}`).then(r => r.data),
         enabled: !!user?.email,
     });
 
@@ -69,8 +70,7 @@ const EnrollModal = ({ isOpen, onClose, course, enrolled, onEnrolled }) => {
         setLoading(true);
         try {
             if (isFree) {
-                // Free enrollment — save directly to DB
-                await enrollFree({
+                await axiosSecure.post('/enrollments', {
                     courseId:    course._id,
                     courseTitle: course.title,
                     userEmail:   user.email,

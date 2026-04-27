@@ -191,6 +191,14 @@ const MyClass = () => {
 
     const { data: course } = useQuery({ queryKey: ['course', courseId], queryFn: () => getCourseById(courseId), enabled: !!courseId });
     const { data: lessons = [], isLoading } = useQuery({ queryKey: ['lessons', courseId], queryFn: () => getLessons(courseId), enabled: !!courseId });
+
+    // Enrollment check
+    const { data: enrollments = [], isLoading: enrollLoading } = useQuery({
+        queryKey: ['enrollments', userEmail],
+        queryFn: () => axiosSecure.get(`/enrollments/${userEmail}`).then(r => r.data),
+        enabled: !!userEmail && !!courseId,
+    });
+    const isEnrolled = enrollments.some(e => e.courseId === courseId);
     const { data: progress = [] } = useQuery({
         queryKey: ['lessonProgress', userEmail, courseId],
         queryFn: () => axiosSecure.get(`/lesson-progress/${userEmail}/${courseId}`).then(r => r.data),
@@ -285,11 +293,24 @@ const MyClass = () => {
         </div>
     );
 
-    if (isLoading) return (
+    if (isLoading || enrollLoading) return (
         <div className="min-h-screen flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
                 <TbFidgetSpinner className="animate-spin text-primary text-5xl" />
                 <p className="text-neutral/50 font-semibold">{lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}</p>
+            </div>
+        </div>
+    );
+
+    if (courseId && !isEnrolled) return (
+        <div className="min-h-screen bg-base-200 flex items-center justify-center p-6">
+            <div className="text-center max-w-sm">
+                <p className="text-6xl mb-4">🔒</p>
+                <h2 className="text-2xl font-bold text-neutral mb-2">{lang === 'bn' ? 'ভর্তি হননি' : 'Not Enrolled'}</h2>
+                <p className="text-neutral/50 text-sm mb-6">{lang === 'bn' ? 'এই কোর্সে ভর্তি হতে হবে।' : 'You need to enroll in this course first.'}</p>
+                <Link to="/courses" className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all">
+                    <FaBook /> {lang === 'bn' ? 'কোর্স দেখুন' : 'Browse Courses'}
+                </Link>
             </div>
         </div>
     );

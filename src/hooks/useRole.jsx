@@ -10,7 +10,7 @@ const useRole = () => {
         enabled: !loading && !!user?.email,
         queryKey: ['role', user?.email],
         queryFn: async () => {
-            const result = await axiosSecure.get(`/users/${user.email}`)
+            const result = await axiosSecure.get(`/user/role`)
             return result.data?.role
         },
         staleTime: 5 * 60 * 1000,

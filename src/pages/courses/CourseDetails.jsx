@@ -5,8 +5,9 @@ import { TbFidgetSpinner } from 'react-icons/tb';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useApp } from '../../context/AppContext';
-import { getCourseById, getEnrollments, getCourseReviews } from '../../utils';
+import { getCourseById, getCourseReviews } from '../../utils';
 import useAuth from '../../hooks/useAuth';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 import EnrollModal from '../../components/modals/EnrollModal';
 
 const CourseDetails = () => {
@@ -284,9 +285,10 @@ const CourseDetails = () => {
 // Simple card with price info + open modal button
 const EnrollButton = ({ course, lang, enrolled, onOpen }) => {
     const { user } = useAuth();
+    const axiosSecure = useAxiosSecure();
     const { data: enrollments = [] } = useQuery({
         queryKey: ['enrollments', user?.email],
-        queryFn: () => getEnrollments(user?.email),
+        queryFn: () => axiosSecure.get(`/enrollments/${user?.email}`).then(r => r.data),
         enabled: !!user?.email,
     });
     const isEnrolled = enrolled || enrollments.some(e => e.courseId === course?._id);

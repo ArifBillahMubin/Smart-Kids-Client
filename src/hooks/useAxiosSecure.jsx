@@ -39,6 +39,11 @@ const useAxiosSecure = () => {
     }
   }, [user, loading, logOut, navigate])
 
+  // Always attach token if available (handles initial render race condition)
+  if (user?.accessToken) {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${user.accessToken}`
+  }
+
   return axiosInstance
 }
 
